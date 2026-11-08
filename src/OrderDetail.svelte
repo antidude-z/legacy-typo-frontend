@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import Calculation from './Calculation.svelte';
   export let orderId;
   export let onBack;
   let data = null;
@@ -50,6 +51,7 @@
 
 {#if data}
 <div class="container-fluid order-detail"><div class="row"><div class="col-sm-12"><h1 class="page-header">{data.order.title} <small>({data.order.type})</small></h1></div></div>
+  <Calculation {orderId} />
   <div class="row"><div class="col-sm-12"><form onsubmit={(event) => { event.preventDefault(); save(); }}>
     <div class="row"><div class="col-md-6"><div class="form-group"><label for="detail_title">Название</label><input class="form-control" id="detail_title" bind:value={title} /></div></div><div class="col-md-3"><div class="form-group"><label for="detail_format">Формат</label><input class="form-control" id="detail_format" bind:value={form.format} /></div></div><div class="col-md-3"><div class="form-group"><label for="detail_printing">Тираж</label><input class="form-control" id="detail_printing" type="number" bind:value={form.printing} /></div></div></div>
     <div class="row"><div class="col-md-3"><div class="form-group"><label for="detail_status">Статус заказа</label><select class="form-control" id="detail_status" bind:value={form.status_id}>{#each data.metadata.statuses as item}<option value={item.id}>{item.title}</option>{/each}</select></div></div><div class="col-md-3"><div class="form-group"><label for="detail_order_date">Дата заказа</label><input class="form-control" id="detail_order_date" type="date" bind:value={form.order_date} /></div></div><div class="col-md-3"><div class="form-group"><label for="detail_prod_date">Дата производства</label><input class="form-control" id="detail_prod_date" type="date" bind:value={form.prod_date} /></div></div><div class="col-md-3"><div class="form-group"><label for="detail_deadline">Дедлайн</label><input class="form-control" id="detail_deadline" type="date" bind:value={form.deadline} /></div></div></div>

@@ -5,6 +5,8 @@
   import Orders from './Orders.svelte';
   import OrderForm from './OrderForm.svelte';
   import OrderDetail from './OrderDetail.svelte';
+  import Prices from './Prices.svelte';
+  import PriceCatalog from './PriceCatalog.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -12,6 +14,8 @@
   let path = window.location.pathname;
   $: orderPath = path.match(/^\/orders\/(\d+)$/);
   $: createPath = path.match(/^\/orders\/add\/(book|poly|wide|souvenir)$/);
+  $: pricePath = path.match(/^\/prices\/([a-z]+)\/(\d+)\/?$/);
+  $: catalogPath = path.match(/^\/prices\/([a-z]+)\/?$/);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -51,6 +55,10 @@
 <Navigation menu={session.menu} user={session.user} onLogout={logout} />
 {#if path === '/auth/login'}
   <Login {users} {error} onSubmit={login} />
+{:else if pricePath}
+  <Prices kind={pricePath[1]} itemId={pricePath[2]} />
+{:else if catalogPath}
+  <PriceCatalog kind={catalogPath[1]} />
 {:else if createPath}
   <OrderForm orderType={createPath[1]} onSaved={(id) => (window.location.href = `/orders/${id}`)} />
 {:else if orderPath}
