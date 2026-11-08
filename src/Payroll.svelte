@@ -45,5 +45,6 @@
       {#each data.item.orders as row}<tr><td>{row.customer}</td><td>{row.title}</td><td>{row.printing}</td><td>{row.bill_number}</td><td>{row.bill_date}</td><td>{row.total}</td><td>{row.materials}</td><td>{row.works}</td><td>{row.contractors}</td><td><select class="form-control" disabled={data.item.status === 'paid'} bind:value={row.percent}>{#each data.markups as percent}<option value={percent}>{percent}%</option>{/each}</select></td><td>{row.salary}</td></tr>{:else}<tr><td colspan="11">Нет заказов</td></tr>{/each}
     </tbody><tfoot><tr><th colspan="5">Итого</th><th>{data.item.total}</th><th></th><th></th><th></th><th></th><th>{data.item.orders_salary}</th></tr><tr><th colspan="10">Всего за месяц</th><th>{data.item.month_salary}</th></tr></tfoot></table>
     <button class="btn btn-primary" disabled={busy || data.item.status === 'paid'} onclick={save}>Сохранить</button>
+    <a class="btn btn-default" href={`/reports/payrolls/${identity}/export`} target="_blank" rel="noopener" download>Экспорт XLS</a>
   {:else if !error}<p role="status">Загрузка…</p>{/if}
 </div>
