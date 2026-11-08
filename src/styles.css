@@ -110,4 +110,5 @@ a:hover { color: #23527c; text-decoration: underline; }
 .blank-afterprint { display: block; margin: 4px 0; }
 .pricing-spinner { display: flex; }
 .pricing-spinner .form-control { min-width: 0; }
+.reference-form { max-width: 600px; margin: 15px 0; padding: 15px; border: 1px solid #ddd; background: #fafafa; }
 @media (max-width: 767px) { .blank-form { grid-template-columns: 1fr; } }
