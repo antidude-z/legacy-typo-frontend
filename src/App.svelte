@@ -12,6 +12,8 @@
   import ReferenceInventory from './ReferenceInventory.svelte';
   import { inventoryRoute } from './inventory.js';
   import ReferencePrinters from './ReferencePrinters.svelte';
+  import PrinterChildren from './PrinterChildren.svelte';
+  import { printerChildRoute } from './printerRoutes.js';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -26,6 +28,7 @@
   $: referencePath = path.match(/^\/options\/(paper-type|paper-format|measures)(?:\/(create|\d+)(?:\/(edit|delete|restore))?)?\/?$/);
   $: inventoryPath = inventoryRoute(path);
   $: printerPath = path.match(/^\/references\/printers(?:\/(create|\d+)(?:\/(edit|delete|restore))?)?\/?$/);
+  $: printerChildPath = printerChildRoute(path);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -76,6 +79,8 @@
   <ReferenceDictionary kind={referencePath[1]} identity={referencePath[2] === 'create' ? null : referencePath[2]} action={referencePath[2] === 'create' ? 'create' : (referencePath[3] ?? (referencePath[2] ? 'edit' : 'list'))} />
 {:else if inventoryPath}
   <ReferenceInventory kind={inventoryPath.kind} identity={inventoryPath.identity} action={inventoryPath.action} />
+{:else if printerChildPath}
+  <PrinterChildren {...printerChildPath} />
 {:else if printerPath}
   <ReferencePrinters identity={printerPath[1] === 'create' ? null : printerPath[1]} action={printerPath[1] === 'create' ? 'create' : (printerPath[2] ?? (printerPath[1] ? 'show' : 'list'))} />
 {:else if createPath}

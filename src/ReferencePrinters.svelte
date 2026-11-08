@@ -70,6 +70,8 @@
       <button class="btn btn-primary" type="submit" disabled={busy || form.deleted}>Сохранить</button> <a class="btn btn-default" href={base}>Отменить</a>
     </form>
     <h2>Варианты печати</h2>
+    <a class="btn btn-default" href={`${base}/${identity}/processes`}>Варианты печати: редактирование</a>
+    <a class="btn btn-default" href={`${base}/${identity}/fields`}>Печатные поля</a>
     <table class="table table-striped table-bordered"><thead><tr><th>Название</th><th>Цветность</th><th>Разрешение, dpi</th><th>Отбраковка</th></tr></thead><tbody>{#each data.processes as process}<tr><td>{process.title}</td><td>{process.colors_front} / {process.colors_back}</td><td>{process.resolution}</td><td>{process.rejection}</td></tr>{:else}<tr><td colspan="4">Варианты не введены</td></tr>{/each}</tbody></table>
   {:else if !error}<p role="status">Загрузка…</p>{/if}
 </div>
