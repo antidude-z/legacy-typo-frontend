@@ -33,6 +33,8 @@
   import AccountingBills from './AccountingBills.svelte';
   import Payroll from './Payroll.svelte';
   import { payrollRoute } from './payrollRoutes.js';
+  import Permissions from './Permissions.svelte';
+  import { permissionRoute } from './permissionRoutes.js';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -58,6 +60,7 @@
   $: paymentPath = paymentRoute(path);
   $: reportSettingsPath = reportSettingsRoute(path);
   $: payrollPath = payrollRoute(path);
+  $: permissionsPath = permissionRoute(path);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -112,6 +115,8 @@
   <ReportSettings {...reportSettingsPath} />
   {:else if payrollPath}
   <Payroll {...payrollPath} />
+{:else if permissionsPath}
+  <Permissions />
 {:else if paymentPath}
   <AccountingPayment {...paymentPath} />
 {:else if billPath}
