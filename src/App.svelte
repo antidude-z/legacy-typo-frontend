@@ -18,6 +18,8 @@
   import { afterprintRoute } from './afterprintRoutes.js';
   import ReferenceCompiles from './ReferenceCompiles.svelte';
   import { compileRoute } from './compileRoutes.js';
+  import ReferenceWorks from './ReferenceWorks.svelte';
+  import { workRoute } from './workRoutes.js';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -35,6 +37,7 @@
   $: printerChildPath = printerChildRoute(path);
   $: afterprintPath = afterprintRoute(path);
   $: compilePath = compileRoute(path);
+  $: workPath = workRoute(path);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -85,6 +88,8 @@
   <ReferenceDictionary kind={referencePath[1]} identity={referencePath[2] === 'create' ? null : referencePath[2]} action={referencePath[2] === 'create' ? 'create' : (referencePath[3] ?? (referencePath[2] ? 'edit' : 'list'))} />
 {:else if inventoryPath}
   <ReferenceInventory kind={inventoryPath.kind} identity={inventoryPath.identity} action={inventoryPath.action} />
+{:else if workPath}
+  <ReferenceWorks {...workPath} />
 {:else if compilePath}
   <ReferenceCompiles {...compilePath} />
 {:else if afterprintPath}
