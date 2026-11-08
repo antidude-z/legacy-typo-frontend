@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Navigation from './Navigation.svelte';
   import Login from './Login.svelte';
+  import Orders from './Orders.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -47,7 +48,7 @@
 {#if path === '/auth/login'}
   <Login {users} {error} onSubmit={login} />
 {:else if path === '/orders'}
-  <div class="container-fluid"><div class="row"><div class="col-sm-12"><h1 class="page-header">Заказы</h1><div class="alert alert-info">Раздел ожидает переноса функциональности.</div></div></div></div>
+  <Orders onUnauthenticated={() => (window.location.href = '/auth/login')} />
 {:else}
   <main class="app-placeholder"><h1>Типография</h1><p>Раздел ожидает переноса функциональности.</p></main>
 {/if}
