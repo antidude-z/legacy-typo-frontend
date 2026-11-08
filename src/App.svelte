@@ -27,6 +27,7 @@
   import AccountingPayers from './AccountingPayers.svelte';
   import { payerRoute, billRoute, paymentRoute } from './accountingRoutes.js';
   import AccountingPayment from './AccountingPayment.svelte';
+  import { safeDestination } from './navigation.js';
   import AccountingBills from './AccountingBills.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
@@ -124,7 +125,7 @@
 {:else if createPath}
   <OrderForm orderType={createPath[1]} onSaved={(id) => (window.location.href = `/orders/${id}`)} />
 {:else if orderPath}
-  <OrderDetail orderId={orderPath[1]} onBack={() => (window.location.href = '/orders')} />
+  <OrderDetail orderId={orderPath[1]} onBack={() => (window.location.href = safeDestination(new URLSearchParams(window.location.search).get('destination'), '/orders', window.location.origin))} />
 {:else if path === '/orders'}
   <Orders onUnauthenticated={() => (window.location.href = '/auth/login')} />
 {:else}

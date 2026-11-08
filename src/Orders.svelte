@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { orderEditPath } from './navigation.js';
 
   export let onUnauthenticated;
   let data = { items: [], pagination: { page: 1, per_page: 30, total: 0, last_page: 1 }, metadata: { statuses: [], managers: [], customers: [], types: [] }, filter: {} };
@@ -11,6 +12,7 @@
     if (response.status === 303 || response.status === 401) return onUnauthenticated();
     data = await response.json();
     form = { ...form, ...data.filter };
+    window.history.replaceState(null, '', `/orders${query}`);
   }
 
   async function applyFilter(flush = false) {
@@ -35,7 +37,7 @@
     load(`?page=${number}&per_page=${data.pagination.per_page}&sort=${data.sort}&order=${data.order}`);
   }
 
-  onMount(load);
+  onMount(() => load(window.location.search));
 </script>
 
 <div class="container-fluid orders-page">
@@ -59,7 +61,7 @@
   </div></div></div>
   <div class="row"><div class="col-sm-12"><div class="table-responsive"><table class="table table-striped table-bordered table-hover"><thead><tr>
     {#each [['id','№'],['title','Название'],['order_type','Тип заказа'],['bill_id','Счет'],['user_id','Менеджер'],['customer_id','Заказчик'],['status_id','Статус'],['printing','Тираж'],['order_date','Дата создания'],['total','Стоимость']] as column}<th><button class="sort-button" onclick={() => sortBy(column[0])}>{column[1]} {#if data.sort === column[0]}{data.order === 'asc' ? '↑' : '↓'}{/if}</button></th>{/each}<th class="actions-column">Действия</th>
-  </tr></thead><tbody>{#each data.items as item}<tr class:warning={item.deleted}><td>{item.id}</td><td><a href={`/orders/${item.id}`}>{item.title}</a>{#if item.deleted} (удалено){/if}</td><td>{item.type}</td><td>{item.bill?.number ?? ''}</td><td>{item.manager}</td><td>{item.customer}</td><td>{item.status}</td><td class="text-center">{item.printing}</td><td class="text-center">{item.order_date ?? ''}</td><td class="text-right">{item.total}</td><td><a class="btn btn-xs btn-primary" href={`/orders/${item.id}`}>✎</a></td></tr>{:else}<tr><td colspan="11">Нет заказов</td></tr>{/each}</tbody></table></div>
+  </tr></thead><tbody>{#each data.items as item}<tr class:warning={item.deleted}><td>{item.id}</td><td><a href={orderEditPath(item.id, window.location.pathname + window.location.search)}>{item.title}</a>{#if item.deleted} (удалено){/if}</td><td>{item.type}</td><td>{item.bill?.number ?? ''}</td><td>{item.manager}</td><td>{item.customer}</td><td>{item.status}</td><td class="text-center">{item.printing}</td><td class="text-center">{item.order_date ?? ''}</td><td class="text-right">{item.total}</td><td><a class="btn btn-xs btn-primary" href={orderEditPath(item.id, window.location.pathname + window.location.search)}>✎</a></td></tr>{:else}<tr><td colspan="11">Нет заказов</td></tr>{/each}</tbody></table></div>
     <div class="pagination-controls"><button class="btn btn-default btn-sm" disabled={data.pagination.page <= 1} onclick={() => page(data.pagination.page - 1)}>‹</button><span>Страница {data.pagination.page} из {data.pagination.last_page}</span><button class="btn btn-default btn-sm" disabled={data.pagination.page >= data.pagination.last_page} onclick={() => page(data.pagination.page + 1)}>›</button></div>
   </div></div>
 </div>

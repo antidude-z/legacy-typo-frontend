@@ -113,4 +113,6 @@ a:hover { color: #23527c; text-decoration: underline; }
 .reference-form { max-width: 600px; margin: 15px 0; padding: 15px; border: 1px solid #ddd; background: #fafafa; }
 .reference-filter { display: flex; gap: 10px; max-width: 800px; margin: 15px 0; }
 .production-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+.bill-search-results { list-style: none; padding: 5px 0; margin: 0; border: 1px solid #ccc; max-height: 220px; overflow-y: auto; background: #fff; }
+.bill-selector p { margin: 5px 0; }
 @media (max-width: 767px) { .blank-form { grid-template-columns: 1fr; } }

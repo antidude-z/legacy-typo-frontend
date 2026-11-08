@@ -3,6 +3,7 @@
   import { inventoryError } from './inventory.js';
   import { displayDate } from './pricing.js';
   import { paymentEditorPath } from './accountingRoutes.js';
+  import { safeDestination } from './navigation.js';
   export let identity = null;
   export let action = 'list';
   let data = {items:[],metadata:{managers:[],payers:[]},page:1,last_page:1};
@@ -14,6 +15,9 @@
   let order = 'desc';
   const base = '/accounting/bills';
   const api = '/api/accounting/bills';
+  const returnTo = safeDestination(new URLSearchParams(window.location.search).get('destination'), base, window.location.origin);
+  const initialQuery = new URLSearchParams(window.location.search);
+  const perPage = Math.max(1, Number(initialQuery.get('per_page')) || 30);
   const statusNames = [['paid','Оплачен'],['closed','Закрыт'],['filed','Подшит']];
   async function request(url, options) {
     const response = await fetch(url,options); const result = await response.json();
@@ -21,7 +25,7 @@
     return result;
   }
   async function load(page = 1) {
-    try { data = await request(`${api}?page=${page}&sort=${sort}&order=${order}`); filters = {...filters,...data.filter}; error = ''; }
+    try { data = await request(`${api}?page=${page}&per_page=${perPage}&sort=${sort}&order=${order}`); filters = {...filters,...data.filter}; error = ''; window.history.replaceState(null,'',`${base}?page=${page}&per_page=${perPage}&sort=${sort}&order=${order}`); }
     catch (failure) { error = failure.message; }
   }
   async function sortBy(key) { order = sort === key && order === 'asc' ? 'desc' : 'asc'; sort = key; await load(data.page); }
@@ -31,7 +35,7 @@
   }
   async function save() {
     if (busy) return; busy = true; error = '';
-    try { await request(action === 'create' ? api : `${api}/${identity}`,{method:action === 'create' ? 'POST':'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)}); window.location.href = base; }
+    try { await request(action === 'create' ? api : `${api}/${identity}`,{method:action === 'create' ? 'POST':'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)}); window.location.href = returnTo; }
     catch (failure) { error = failure.message; }
     finally { busy = false; }
   }
@@ -55,7 +59,7 @@
   }
   onMount(async () => {
     try {
-      if (action === 'list') { await load(); return; }
+      if (action === 'list') { sort = initialQuery.get('sort') || 'id'; order = initialQuery.get('order') === 'asc' ? 'asc' : 'desc'; await load(Math.max(1,Number(initialQuery.get('page')) || 1)); return; }
       if (action === 'restore') { await request(`${api}/${identity}/restore`,{method:'POST'}); window.location.replace(base); return; }
       if (action === 'create') {
         data = {...data,...await request(`${api}/form`)};
@@ -81,7 +85,7 @@
       </form>
     </details>
     <table class="table table-striped table-bordered table-hover"><thead><tr>{#each [['id','ID'],['number','Номер счета'],['bill_date','Дата счета'],['payer_id','Плательщик'],['user_id','Менеджер'],['amount','Сумма']] as [key,label]}<th><button class="sort-button" onclick={() => sortBy(key)}>{label}</button></th>{/each}<th>Оплачено</th><th>Валюта</th><th>Состояние</th><th>Действия</th></tr></thead><tbody>
-      {#each data.items as row}<tr class:warning={row.deleted}><td>{row.id}</td><td><a href={`${base}/${row.id}`}>{row.number}</a>{#if row.deleted} (удалено){/if}</td><td>{displayDate(row.bill_date)}</td><td>{row.payer}</td><td>{row.manager}</td><td>{row.amount}</td><td>{row.paid_sum}</td><td>{row.currency}</td><td>{statusNames.filter(([key]) => row[key]).map(([,label]) => label).join('; ')}</td><td>{#if data.can_edit}<a href={`${base}/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a href={`${base}/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a href={`${base}/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a href={`${base}/${row.id}/delete`}>Удалить</a>{/if}{/if}</td></tr>{:else}<tr><td colspan="10">Нет счетов</td></tr>{/each}
+      {#each data.items as row}<tr class:warning={row.deleted}><td>{row.id}</td><td><a href={`${base}/${row.id}`}>{row.number}</a>{#if row.deleted} (удалено){/if}</td><td>{displayDate(row.bill_date)}</td><td>{row.payer}</td><td>{row.manager}</td><td>{row.amount}</td><td>{row.paid_sum}</td><td>{row.currency}</td><td>{statusNames.filter(([key]) => row[key]).map(([,label]) => label).join('; ')}</td><td>{#if data.can_edit}<a href={`${base}/${row.id}/edit?destination=${encodeURIComponent(window.location.pathname + window.location.search)}`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a href={`${base}/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a href={`${base}/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a href={`${base}/${row.id}/delete`}>Удалить</a>{/if}{/if}</td></tr>{:else}<tr><td colspan="10">Нет счетов</td></tr>{/each}
     </tbody></table>
     <button class="btn btn-default" disabled={data.page <= 1} onclick={() => load(data.page-1)}>‹</button> {data.page} / {data.last_page} <button class="btn btn-default" disabled={data.page >= data.last_page} onclick={() => load(data.page+1)}>›</button>
   {:else if form && action === 'delete'}
@@ -96,7 +100,7 @@
       <label for="bill_currency">Валюта</label><select id="bill_currency" class="form-control" bind:value={form.currency}><option>RUB</option><option>USD</option><option>EUR</option></select>
       {#each statusNames as [key,label]}<label><input type="checkbox" bind:checked={form[key]} /> {label}</label>{/each}
       {#if action === 'edit' || action === 'create'}<button class="btn btn-primary" type="submit">Сохранить</button>{/if}
-    </fieldset><a class="btn btn-default" href={base}>Вернуться</a></form>
+    </fieldset><a class="btn btn-default" href={returnTo}>Вернуться</a></form>
     {#if action !== 'create'}
       <h2>Заказы</h2><table class="table table-bordered"><thead><tr><th>№</th><th>Товары (работы, услуги)</th><th>Кол-во</th><th>Ед</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{#each data.orders as row}<tr><td>{row.id}</td><td><a href={`/orders/${row.id}`}>{row.title}</a></td><td>{row.printing}</td><td>шт</td><td>{row.price}</td><td>{row.total}</td></tr>{:else}<tr><td colspan="6">Заказы не привязаны</td></tr>{/each}</tbody></table>
       <h2>Платежи по счету</h2>
