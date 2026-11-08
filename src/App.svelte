@@ -20,6 +20,8 @@
   import { compileRoute } from './compileRoutes.js';
   import ReferenceWorks from './ReferenceWorks.svelte';
   import { workRoute } from './workRoutes.js';
+  import ReferenceCustomers from './ReferenceCustomers.svelte';
+  import { customerRoute } from './customerRoutes.js';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -31,13 +33,14 @@
   $: catalogPath = path.match(/^\/prices\/([a-z]+)\/?$/);
   $: priceEditorPath = path.match(/^\/prices\/([a-z]+)\/(\d+)\/(?:(create)|(\d+)(?:\/(edit|delete))?)\/?$/);
   $: recalculatePricePath = path.match(/^\/prices\/([a-z]+)\/recalculate\/?$/);
-  $: referencePath = path.match(/^\/options\/(paper-type|paper-format|measures)(?:\/(create|\d+)(?:\/(edit|delete|restore))?)?\/?$/);
+  $: referencePath = path.match(/^\/options\/(paper-type|paper-format|measures|customer-group)(?:\/(create|\d+)(?:\/(edit|delete|restore))?)?\/?$/);
   $: inventoryPath = inventoryRoute(path);
   $: printerPath = path.match(/^\/references\/printers(?:\/(create|\d+)(?:\/(edit|delete|restore))?)?\/?$/);
   $: printerChildPath = printerChildRoute(path);
   $: afterprintPath = afterprintRoute(path);
   $: compilePath = compileRoute(path);
   $: workPath = workRoute(path);
+  $: customerPath = customerRoute(path);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -88,6 +91,8 @@
   <ReferenceDictionary kind={referencePath[1]} identity={referencePath[2] === 'create' ? null : referencePath[2]} action={referencePath[2] === 'create' ? 'create' : (referencePath[3] ?? (referencePath[2] ? 'edit' : 'list'))} />
 {:else if inventoryPath}
   <ReferenceInventory kind={inventoryPath.kind} identity={inventoryPath.identity} action={inventoryPath.action} />
+{:else if customerPath}
+  <ReferenceCustomers {...customerPath} />
 {:else if workPath}
   <ReferenceWorks {...workPath} />
 {:else if compilePath}
