@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { inventoryError } from './inventory.js';
   import { displayDate } from './pricing.js';
+  import { paymentEditorPath } from './accountingRoutes.js';
   export let identity = null;
   export let action = 'list';
   let data = {items:[],metadata:{managers:[],payers:[]},page:1,last_page:1};
@@ -32,6 +33,18 @@
     if (busy) return; busy = true; error = '';
     try { await request(action === 'create' ? api : `${api}/${identity}`,{method:action === 'create' ? 'POST':'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)}); window.location.href = base; }
     catch (failure) { error = failure.message; }
+    finally { busy = false; }
+  }
+  async function openPayment(paymentId = 'new') {
+    if (busy) return;
+    busy = true; error = '';
+    try {
+      const next = paymentEditorPath(identity, paymentId);
+      if (action === 'edit') {
+        await request(`${api}/${identity}`, {method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(form)});
+      }
+      window.location.href = next;
+    } catch (failure) { error = failure.message; }
     finally { busy = false; }
   }
   async function remove() {
@@ -86,7 +99,14 @@
     </fieldset><a class="btn btn-default" href={base}>Вернуться</a></form>
     {#if action !== 'create'}
       <h2>Заказы</h2><table class="table table-bordered"><thead><tr><th>№</th><th>Товары (работы, услуги)</th><th>Кол-во</th><th>Ед</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{#each data.orders as row}<tr><td>{row.id}</td><td><a href={`/orders/${row.id}`}>{row.title}</a></td><td>{row.printing}</td><td>шт</td><td>{row.price}</td><td>{row.total}</td></tr>{:else}<tr><td colspan="6">Заказы не привязаны</td></tr>{/each}</tbody></table>
-      <h2>Платежи по счету</h2><table class="table table-bordered"><thead><tr><th>ID</th><th>Дата платежа</th><th>Сумма</th></tr></thead><tbody>{#each data.payments as row}<tr class:warning={row.deleted}><td>{row.id}</td><td>{displayDate(row.payment_date)}</td><td>{row.amount}</td></tr>{:else}<tr><td colspan="3">Нет платежей</td></tr>{/each}</tbody></table><p>Итого оплачено: {form.paid_sum}</p>
+      <h2>Платежи по счету</h2>
+      {#if data.can_edit && !form.deleted}<button class="btn btn-default" type="button" disabled={busy} onclick={() => openPayment()}>Новый платеж</button>{/if}
+      <table class="table table-bordered"><thead><tr><th>ID</th><th>Дата платежа</th><th>Сумма</th><th>Действия</th></tr></thead><tbody>{#each data.payments as row}<tr class:warning={row.deleted}><td>{row.id}{#if row.deleted} (удалено){/if}</td><td>{displayDate(row.payment_date)}</td><td>{row.amount}</td><td>
+        {#if data.can_edit}
+          {#if !row.deleted && !form.deleted}<button class="btn btn-xs btn-primary" disabled={busy} onclick={() => openPayment(row.id)}>Редактировать</button>{/if}
+          {#if row.deleted}{#if data.can_restore}<a class="btn btn-xs btn-info" href={`${base}/${identity}/payments/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a class="btn btn-xs btn-danger" href={`${base}/${identity}/payments/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a class="btn btn-xs btn-danger" href={`${base}/${identity}/payments/${row.id}/delete`}>Удалить</a>{/if}
+        {/if}
+      </td></tr>{:else}<tr><td colspan="4">Нет платежей</td></tr>{/each}</tbody></table><p>Итого оплачено: {form.paid_sum}</p>
     {/if}
   {:else if !error}<p role="status">Загрузка…</p>{/if}
 </div>

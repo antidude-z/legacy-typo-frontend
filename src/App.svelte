@@ -25,7 +25,8 @@
   import ReferenceUsers from './ReferenceUsers.svelte';
   import { employeeRoute } from './employeeRoutes.js';
   import AccountingPayers from './AccountingPayers.svelte';
-  import { payerRoute, billRoute } from './accountingRoutes.js';
+  import { payerRoute, billRoute, paymentRoute } from './accountingRoutes.js';
+  import AccountingPayment from './AccountingPayment.svelte';
   import AccountingBills from './AccountingBills.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
@@ -49,6 +50,7 @@
   $: employeePath = employeeRoute(path);
   $: payerPath = payerRoute(path);
   $: billPath = billRoute(path);
+  $: paymentPath = paymentRoute(path);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -99,6 +101,8 @@
   <ReferenceDictionary kind={referencePath[1]} identity={referencePath[2] === 'create' ? null : referencePath[2]} action={referencePath[2] === 'create' ? 'create' : (referencePath[3] ?? (referencePath[2] ? 'edit' : 'list'))} />
 {:else if inventoryPath}
   <ReferenceInventory kind={inventoryPath.kind} identity={inventoryPath.identity} action={inventoryPath.action} />
+{:else if paymentPath}
+  <AccountingPayment {...paymentPath} />
 {:else if billPath}
   <AccountingBills {...billPath} />
 {:else if payerPath}
