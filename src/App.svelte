@@ -35,6 +35,9 @@
   import { payrollRoute } from './payrollRoutes.js';
   import Permissions from './Permissions.svelte';
   import { permissionRoute } from './permissionRoutes.js';
+  import Register from './Register.svelte';
+  import PasswordReset from './PasswordReset.svelte';
+  import { authRoute } from './authRoutes.js';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -61,6 +64,7 @@
   $: reportSettingsPath = reportSettingsRoute(path);
   $: payrollPath = payrollRoute(path);
   $: permissionsPath = permissionRoute(path);
+  $: authPath = authRoute(path);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -101,6 +105,12 @@
 <Navigation menu={session.menu} user={session.user} onLogout={logout} />
 {#if path === '/auth/login'}
   <Login {users} {error} onSubmit={login} />
+{:else if authPath?.kind === 'register'}
+  <Register />
+{:else if authPath?.kind === 'request'}
+  <PasswordReset kind="request" />
+{:else if authPath?.kind === 'reset'}
+  <PasswordReset kind="reset" token={authPath.token} />
 {:else if priceEditorPath}
   <PriceEditor kind={priceEditorPath[1]} itemId={priceEditorPath[2]} priceId={priceEditorPath[4]} action={priceEditorPath[3] ? 'create' : (priceEditorPath[5] ?? 'edit')} />
 {:else if pricePath}
