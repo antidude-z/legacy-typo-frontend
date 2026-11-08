@@ -115,4 +115,5 @@ a:hover { color: #23527c; text-decoration: underline; }
 .production-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
 .bill-search-results { list-style: none; padding: 5px 0; margin: 0; border: 1px solid #ccc; max-height: 220px; overflow-y: auto; background: #fff; }
 .bill-selector p { margin: 5px 0; }
+.report-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
 @media (max-width: 767px) { .blank-form { grid-template-columns: 1fr; } }

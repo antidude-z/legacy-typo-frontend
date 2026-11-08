@@ -5,6 +5,7 @@
   import { paymentEditorPath } from './accountingRoutes.js';
   import { safeDestination } from './navigation.js';
   import { money, billEditPath } from './accounting.js';
+  import ReportActions from './ReportActions.svelte';
   export let identity = null;
   export let action = 'list';
   let data = {items:[],metadata:{managers:[],payers:[]},page:1,last_page:1};
@@ -103,6 +104,7 @@
       {#if action === 'edit' || action === 'create'}<button class="btn btn-primary" type="submit">Сохранить</button>{/if}
     </fieldset><a class="btn btn-default" href={returnTo}>Вернуться</a></form>
     {#if action !== 'create'}
+      <ReportActions kind="bills" {identity} />
       {#if action === 'view' && data.can_edit && !form.deleted}<a class="btn btn-primary" href={billEditPath(identity,returnTo)}>Редактировать</a>{/if}
       <h2>Заказы</h2><table class="table table-bordered"><thead><tr><th>№</th><th>Товары (работы, услуги)</th><th>Кол-во</th><th>Ед</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{#each data.orders as row}<tr><td>{row.id}</td><td><a href={`/orders/${row.id}?destination=${encodeURIComponent(window.location.pathname + window.location.search)}`}>{row.title}</a></td><td>{row.printing}</td><td>шт</td><td>{money(row.price)}</td><td>{money(row.total)}</td></tr>{:else}<tr><td colspan="6">Заказы не привязаны</td></tr>{/each}</tbody><tfoot><tr><th colspan="5" class="text-right">Итого:</th><th>{money(data.orders_total)}</th></tr></tfoot></table>
       <h2>Платежи по счету</h2>
