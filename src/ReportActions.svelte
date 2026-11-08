@@ -4,6 +4,9 @@
   export let identity;
   let items = [];
   let error = '';
+  let paymentReport = null;
+  let institute = '';
+  let customer = '';
   onMount(async () => {
     try {
       const response = await fetch(`/api/reports/for/${kind}/${identity}`);
@@ -15,7 +18,20 @@
 {#if error}<p role="status">{error}</p>{/if}
 <div class="report-actions">
   {#each items as report}
-    {#if report.available && !report.blocked}<a class="btn btn-default" href={report.url} target="_blank" rel="noopener" download={report.download}>{report.title}</a>
+    {#if report.available && !report.blocked}
+      {#if report.id === 'order_payment'}
+        <button class="btn btn-default" type="button" onclick={() => paymentReport = report}>{report.title}</button>
+      {:else}<a class="btn btn-default" href={report.url} target="_blank" rel="noopener" download={report.download}>{report.title}</a>{/if}
     {:else}<span class="text-muted">{report.title}: {report.blocked ? 'недоступен при текущем статусе' : 'формат ещё не перенесён'}</span>{/if}
   {/each}
 </div>
+{#if paymentReport}
+  <form class="report-form" method="post" action={paymentReport.url} target="_blank" onsubmit={() => paymentReport = null}>
+    <label for="payment_institute">Институт, подразделение, кафедра</label>
+    <input id="payment_institute" class="form-control" name="vars[institute]" bind:value={institute} />
+    <label for="payment_customer">ФИО заказчика</label>
+    <input id="payment_customer" class="form-control" name="vars[customer]" bind:value={customer} />
+    <button class="btn btn-primary" type="submit">Сформировать</button>
+    <button class="btn btn-default" type="button" onclick={() => paymentReport = null}>Отмена</button>
+  </form>
+{/if}
