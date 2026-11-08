@@ -6,6 +6,7 @@
   let title = '';
   let form = { format: '', printing: 0, status_id: 1, order_date: '', prod_date: '', deadline: '', manager_id: '', customer_id: '', bill_id: '', comment: '', files: '' };
   let message = '';
+  let history = [];
 
   async function load() {
     const response = await fetch(`/api/orders/${orderId}`);
@@ -13,6 +14,8 @@
       data = await response.json();
       title = data.order.title;
       form = { ...form, ...data.order, status_id: data.order.status_id ?? 1, manager_id: data.order.manager_id ?? '', customer_id: data.order.customer_id ?? '', bill_id: data.order.bill_id ?? '' };
+      const historyResponse = await fetch(`/api/orders/${orderId}/history`);
+      if (historyResponse.ok) history = (await historyResponse.json()).items;
     }
   }
   async function save() {
@@ -36,6 +39,6 @@
     <div class="row"><div class="col-md-6"><div class="form-group"><label for="detail_files">Файлы</label><textarea class="form-control" id="detail_files" rows="2" bind:value={form.files}></textarea></div></div><div class="col-md-6"><div class="form-group"><label for="detail_comment">Примечания</label><textarea class="form-control" id="detail_comment" rows="2" bind:value={form.comment}></textarea></div></div></div>
     <button class="btn btn-primary" type="submit">Сохранить</button> <button class="btn btn-default" type="button" onclick={onBack}>Назад</button> <button class="btn btn-danger" type="button" onclick={remove}>Удалить</button> {#if message}<span class="save-message">{message}</span>{/if}</form></div></div>
   <div class="row"><div class="col-sm-12"><ul class="nav-tabs-static"><li class="active">Общие сведения</li><li>Дизайн/препресс</li><li>Заготовки</li><li>Сборка</li><li>Прочие работы</li><li>История</li></ul></div></div>
-  <div class="row"><div class="col-sm-12"><div class="panel panel-default"><div class="panel-heading">Общие сведения</div><div class="panel-body"><p>Стоимость: {data.calculation.total}</p><p class="text-muted">{data.calculation.message}</p><table class="table table-striped"><thead><tr><th>Состав заказа</th><th>Активна</th><th>Скидка/наценка</th></tr></thead><tbody>{#each data.markups as markup}<tr><td>{markup.type}</td><td><input type="checkbox" checked={markup.active} onchange={(event) => markup.active = event.currentTarget.checked} /></td><td><input class="form-control input-sm" type="number" bind:value={markup.value} /></td></tr>{/each}</tbody></table>{#each Object.entries(data.operations) as [key, items]}<h3>{key}</h3>{#if items.length}<ul>{#each items as item}<li>{item.title} — {item.quantity}</li>{/each}</ul>{:else}<p>Нет записей.</p>{/if}{/each}</div></div></div></div>
+  <div class="row"><div class="col-sm-12"><div class="panel panel-default"><div class="panel-heading">Общие сведения</div><div class="panel-body"><p>Стоимость: {data.calculation.total}</p><p class="text-muted">{data.calculation.message}</p><table class="table table-striped"><thead><tr><th>Состав заказа</th><th>Активна</th><th>Скидка/наценка</th></tr></thead><tbody>{#each data.markups as markup}<tr><td>{markup.type}</td><td><input type="checkbox" checked={markup.active} onchange={(event) => markup.active = event.currentTarget.checked} /></td><td><input class="form-control input-sm" type="number" bind:value={markup.value} /></td></tr>{/each}</tbody></table>{#each Object.entries(data.operations) as [key, items]}<h3>{key}</h3>{#if items.length}<ul>{#each items as item}<li>{item.title} — {item.quantity}</li>{/each}</ul>{:else}<p>Нет записей.</p>{/if}{/each}<h3>История изменений</h3>{#if history.length}<table class="table table-bordered table-striped"><thead><tr><th>Дата</th><th>Сотрудник</th><th>Действие</th></tr></thead><tbody>{#each history as item}<tr><td>{item.date}</td><td>{item.user}</td><td>{item.comment}</td></tr>{/each}</tbody></table>{:else}<p>История изменений пуста.</p>{/if}</div></div></div></div>
 </div>
 {:else}<div class="container-fluid"><p>Загрузка заказа...</p></div>{/if}
