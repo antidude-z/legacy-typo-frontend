@@ -1,16 +1,24 @@
 <script>
+  import { priceError } from './pricing.js';
   export let orderId;
   let result = null;
   let error = '';
+  let busy = false;
   async function calculate() {
+    if (busy) return;
+    busy = true;
+    error = '';
+    try {
     const response = await fetch(`/api/orders/${orderId}/recalculate`, { method: 'POST' });
-    if (!response.ok) { error = 'Не удалось пересчитать заказ'; return; }
+    if (!response.ok) { error = priceError(response.status); return; }
     result = await response.json(); error = '';
+    } catch { error = priceError(0); }
+    finally { busy = false; }
   }
   const names = { design: 'Дизайн/препресс', redaction: 'Редактура', paper: 'Бумага', imagesetter: 'Фотовывод', print: 'Печать', afterprint: 'Постпечать', compile: 'Сборка', other_works: 'Прочие работы', manager: 'Менеджер' };
 </script>
 
-<button type="button" class="btn btn-info" onclick={calculate}>Пересчитать</button>
+<button type="button" class="btn btn-info" disabled={busy} onclick={calculate}>{busy ? 'Пересчёт…' : 'Пересчитать'}</button>
 {#if error}<div class="alert alert-danger">{error}</div>{/if}
 {#if result}
   {#if result.missing.length}<div class="alert alert-danger">Не найдены цены: {result.missing.join(', ')}</div>{/if}
@@ -23,6 +31,16 @@
       <table class="table table-bordered table-striped"><thead><tr><th>Название</th><th>Кол-во</th><th>Цена</th><th>Стоимость</th></tr></thead><tbody>
         {#each rows as row}<tr><td>{row.title}</td><td>{row.quantity}</td><td>{row.price}</td><td>{row.cost}</td></tr>{/each}
       </tbody></table>
+      {#if kind === 'compile'}
+        {#each rows as row}
+          {#each row.stages ?? [] as stage}
+            <details><summary>{stage.title}: {stage.payment_count}</summary>
+              <p>Отбраковка: {stage.waste}; совместно: {stage.together}; работ: {stage.work_count}</p>
+              {#each Object.values(stage.materials) as material}<p>{material.title}: {material.quantity} × {material.price} = {material.cost}</p>{/each}
+            </details>
+          {/each}
+        {/each}
+      {/if}
     {/if}
   {/each}
   {#each Object.entries(result.blanks) as [id, blank]}
