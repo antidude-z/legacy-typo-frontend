@@ -7,6 +7,7 @@
   import OrderDetail from './OrderDetail.svelte';
   import Prices from './Prices.svelte';
   import PriceCatalog from './PriceCatalog.svelte';
+  import PriceEditor from './PriceEditor.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -16,6 +17,8 @@
   $: createPath = path.match(/^\/orders\/add\/(book|poly|wide|souvenir)$/);
   $: pricePath = path.match(/^\/prices\/([a-z]+)\/(\d+)\/?$/);
   $: catalogPath = path.match(/^\/prices\/([a-z]+)\/?$/);
+  $: priceEditorPath = path.match(/^\/prices\/([a-z]+)\/(\d+)\/(?:(create)|(\d+)(?:\/(edit|delete))?)\/?$/);
+  $: recalculatePricePath = path.match(/^\/prices\/([a-z]+)\/recalculate\/?$/);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -43,6 +46,7 @@
   }
 
   onMount(async () => {
+    if (recalculatePricePath) { window.location.replace(`/prices/${recalculatePricePath[1]}`); return; }
     await loadSession();
     if (path === '/auth/login') await loadUsers();
   });
@@ -55,6 +59,8 @@
 <Navigation menu={session.menu} user={session.user} onLogout={logout} />
 {#if path === '/auth/login'}
   <Login {users} {error} onSubmit={login} />
+{:else if priceEditorPath}
+  <PriceEditor kind={priceEditorPath[1]} itemId={priceEditorPath[2]} priceId={priceEditorPath[4]} action={priceEditorPath[3] ? 'create' : (priceEditorPath[5] ?? 'edit')} />
 {:else if pricePath}
   <Prices kind={pricePath[1]} itemId={pricePath[2]} />
 {:else if catalogPath}
