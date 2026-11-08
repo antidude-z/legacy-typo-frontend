@@ -23,6 +23,7 @@
       controller = new AbortController(); busy = true;
       try {
         const response = await fetch(`/api/accounting/bills/search?search=${encodeURIComponent(term)}`, {signal:controller.signal});
+        if (current !== sequence) return;
         if (!response.ok) throw new Error(response.status === 403 ? 'Недостаточно прав для поиска счетов.' : 'Не удалось найти счета.');
         const items = await response.json();
         if (current === sequence) results = items;

@@ -4,6 +4,7 @@
   import { displayDate } from './pricing.js';
   import { paymentEditorPath } from './accountingRoutes.js';
   import { safeDestination } from './navigation.js';
+  import { money, billEditPath } from './accounting.js';
   export let identity = null;
   export let action = 'list';
   let data = {items:[],metadata:{managers:[],payers:[]},page:1,last_page:1};
@@ -102,15 +103,16 @@
       {#if action === 'edit' || action === 'create'}<button class="btn btn-primary" type="submit">Сохранить</button>{/if}
     </fieldset><a class="btn btn-default" href={returnTo}>Вернуться</a></form>
     {#if action !== 'create'}
-      <h2>Заказы</h2><table class="table table-bordered"><thead><tr><th>№</th><th>Товары (работы, услуги)</th><th>Кол-во</th><th>Ед</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{#each data.orders as row}<tr><td>{row.id}</td><td><a href={`/orders/${row.id}`}>{row.title}</a></td><td>{row.printing}</td><td>шт</td><td>{row.price}</td><td>{row.total}</td></tr>{:else}<tr><td colspan="6">Заказы не привязаны</td></tr>{/each}</tbody></table>
+      {#if action === 'view' && data.can_edit && !form.deleted}<a class="btn btn-primary" href={billEditPath(identity,returnTo)}>Редактировать</a>{/if}
+      <h2>Заказы</h2><table class="table table-bordered"><thead><tr><th>№</th><th>Товары (работы, услуги)</th><th>Кол-во</th><th>Ед</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{#each data.orders as row}<tr><td>{row.id}</td><td><a href={`/orders/${row.id}?destination=${encodeURIComponent(window.location.pathname + window.location.search)}`}>{row.title}</a></td><td>{row.printing}</td><td>шт</td><td>{money(row.price)}</td><td>{money(row.total)}</td></tr>{:else}<tr><td colspan="6">Заказы не привязаны</td></tr>{/each}</tbody><tfoot><tr><th colspan="5" class="text-right">Итого:</th><th>{money(data.orders_total)}</th></tr></tfoot></table>
       <h2>Платежи по счету</h2>
-      {#if data.can_edit && !form.deleted}<button class="btn btn-default" type="button" disabled={busy} onclick={() => openPayment()}>Новый платеж</button>{/if}
-      <table class="table table-bordered"><thead><tr><th>ID</th><th>Дата платежа</th><th>Сумма</th><th>Действия</th></tr></thead><tbody>{#each data.payments as row}<tr class:warning={row.deleted}><td>{row.id}{#if row.deleted} (удалено){/if}</td><td>{displayDate(row.payment_date)}</td><td>{row.amount}</td><td>
-        {#if data.can_edit}
+      {#if action === 'edit' && data.can_edit && !form.deleted}<button class="btn btn-default" type="button" disabled={busy} onclick={() => openPayment()}>Новый платеж</button>{/if}
+      <table class="table table-bordered"><thead><tr><th>ID</th><th>Дата платежа</th><th>Сумма</th><th>Действия</th></tr></thead><tbody>{#each data.payments as row}<tr class:warning={row.deleted}><td>{row.id}{#if row.deleted} (удалено){/if}</td><td>{displayDate(row.payment_date)}</td><td>{money(row.amount)}</td><td>
+        {#if action === 'edit' && data.can_edit}
           {#if !row.deleted && !form.deleted}<button class="btn btn-xs btn-primary" disabled={busy} onclick={() => openPayment(row.id)}>Редактировать</button>{/if}
           {#if row.deleted}{#if data.can_restore}<a class="btn btn-xs btn-info" href={`${base}/${identity}/payments/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a class="btn btn-xs btn-danger" href={`${base}/${identity}/payments/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a class="btn btn-xs btn-danger" href={`${base}/${identity}/payments/${row.id}/delete`}>Удалить</a>{/if}
         {/if}
-      </td></tr>{:else}<tr><td colspan="4">Нет платежей</td></tr>{/each}</tbody></table><p>Итого оплачено: {form.paid_sum}</p>
+      </td></tr>{:else}<tr><td colspan="4">Нет платежей</td></tr>{/each}</tbody></table><p>Итого оплачено: {money(form.paid_sum)}</p>
     {/if}
   {:else if !error}<p role="status">Загрузка…</p>{/if}
 </div>
