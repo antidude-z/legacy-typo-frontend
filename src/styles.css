@@ -111,4 +111,6 @@ a:hover { color: #23527c; text-decoration: underline; }
 .pricing-spinner { display: flex; }
 .pricing-spinner .form-control { min-width: 0; }
 .reference-form { max-width: 600px; margin: 15px 0; padding: 15px; border: 1px solid #ddd; background: #fafafa; }
+.reference-filter { display: flex; gap: 10px; max-width: 800px; margin: 15px 0; }
+.production-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
 @media (max-width: 767px) { .blank-form { grid-template-columns: 1fr; } }

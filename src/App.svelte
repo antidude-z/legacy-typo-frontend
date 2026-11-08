@@ -9,6 +9,7 @@
   import PriceCatalog from './PriceCatalog.svelte';
   import PriceEditor from './PriceEditor.svelte';
   import ReferenceDictionary from './ReferenceDictionary.svelte';
+  import ReferenceInventory from './ReferenceInventory.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -21,6 +22,7 @@
   $: priceEditorPath = path.match(/^\/prices\/([a-z]+)\/(\d+)\/(?:(create)|(\d+)(?:\/(edit|delete))?)\/?$/);
   $: recalculatePricePath = path.match(/^\/prices\/([a-z]+)\/recalculate\/?$/);
   $: referencePath = path.match(/^\/options\/(paper-type|paper-format|measures)(?:\/(create|\d+)(?:\/(edit|delete|restore))?)?\/?$/);
+  $: inventoryPath = path.match(/^\/references\/(paper|materials)\/?$/);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -69,6 +71,8 @@
   <PriceCatalog kind={catalogPath[1]} />
 {:else if referencePath}
   <ReferenceDictionary kind={referencePath[1]} identity={referencePath[2] === 'create' ? null : referencePath[2]} action={referencePath[2] === 'create' ? 'create' : (referencePath[3] ?? (referencePath[2] ? 'edit' : 'list'))} />
+{:else if inventoryPath}
+  <ReferenceInventory kind={inventoryPath[1]} />
 {:else if createPath}
   <OrderForm orderType={createPath[1]} onSaved={(id) => (window.location.href = `/orders/${id}`)} />
 {:else if orderPath}
