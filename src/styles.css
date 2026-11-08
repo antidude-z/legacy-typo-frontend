@@ -107,4 +107,5 @@ a:hover { color: #23527c; text-decoration: underline; }
 .save-message { margin-left: 10px; color: #3c763d; }
 .text-muted { color: #777; }
 .blank-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+.blank-afterprint { display: block; margin: 4px 0; }
 @media (max-width: 767px) { .blank-form { grid-template-columns: 1fr; } }
