@@ -3,11 +3,15 @@
   import Navigation from './Navigation.svelte';
   import Login from './Login.svelte';
   import Orders from './Orders.svelte';
+  import OrderForm from './OrderForm.svelte';
+  import OrderDetail from './OrderDetail.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
   let error = '';
   let path = window.location.pathname;
+  $: orderPath = path.match(/^\/orders\/(\d+)$/);
+  $: createPath = path.match(/^\/orders\/add\/(book|poly|wide|souvenir)$/);
 
   async function loadSession() {
     const response = await fetch('/api/session');
@@ -47,6 +51,10 @@
 <Navigation menu={session.menu} user={session.user} onLogout={logout} />
 {#if path === '/auth/login'}
   <Login {users} {error} onSubmit={login} />
+{:else if createPath}
+  <OrderForm orderType={createPath[1]} onSaved={(id) => (window.location.href = `/orders/${id}`)} />
+{:else if orderPath}
+  <OrderDetail orderId={orderPath[1]} onBack={() => (window.location.href = '/orders')} />
 {:else if path === '/orders'}
   <Orders onUnauthenticated={() => (window.location.href = '/auth/login')} />
 {:else}
