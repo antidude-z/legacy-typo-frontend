@@ -3,7 +3,7 @@
   import { inventoryError } from './inventory.js';
   import { displayDate } from './pricing.js';
   import { paymentEditorPath } from './accountingRoutes.js';
-  import { safeDestination } from './navigation.js';
+  import { safeDestination, orderEditPath } from './navigation.js';
   import { money, billEditPath } from './accounting.js';
   import ReportActions from './ReportActions.svelte';
   import BillOrderReports from './BillOrderReports.svelte';
@@ -108,7 +108,7 @@
       <ReportActions kind="bills" {identity} />
       {#if action === 'view'}<BillOrderReports billId={identity} />{/if}
       {#if action === 'view' && data.can_edit && !form.deleted}<a class="btn btn-primary" href={billEditPath(identity,returnTo)}>Редактировать</a>{/if}
-      <h2>Заказы</h2><table class="table table-bordered"><thead><tr><th>№</th><th>Товары (работы, услуги)</th><th>Кол-во</th><th>Ед</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{#each data.orders as row}<tr><td>{row.id}</td><td><a href={`/orders/${row.id}?destination=${encodeURIComponent(window.location.pathname + window.location.search)}`}>{row.title}</a></td><td>{row.printing}</td><td>шт</td><td>{money(row.price)}</td><td>{money(row.total)}</td></tr>{:else}<tr><td colspan="6">Заказы не привязаны</td></tr>{/each}</tbody><tfoot><tr><th colspan="5" class="text-right">Итого:</th><th>{money(data.orders_total)}</th></tr></tfoot></table>
+      <h2>Заказы</h2><table class="table table-bordered"><thead><tr><th>№</th><th>Товары (работы, услуги)</th><th>Кол-во</th><th>Ед</th><th>Цена</th><th>Сумма</th></tr></thead><tbody>{#each data.orders as row}<tr><td>{row.id}</td><td>{#if row.url}<a href={orderEditPath(row.id, window.location.pathname + window.location.search)}>{row.title}</a>{:else}{row.title} <span class="text-muted">(заказ недоступен)</span>{/if}</td><td>{row.printing}</td><td>шт</td><td>{money(row.price)}</td><td>{money(row.total)}</td></tr>{:else}<tr><td colspan="6">Заказы не привязаны</td></tr>{/each}</tbody><tfoot><tr><th colspan="5" class="text-right">Итого:</th><th>{money(data.orders_total)}</th></tr></tfoot></table>
       <h2>Платежи по счету</h2>
       {#if action === 'edit' && data.can_edit && !form.deleted}<button class="btn btn-default" type="button" disabled={busy} onclick={() => openPayment()}>Новый платеж</button>{/if}
       <table class="table table-bordered"><thead><tr><th>ID</th><th>Дата платежа</th><th>Сумма</th><th>Действия</th></tr></thead><tbody>{#each data.payments as row}<tr class:warning={row.deleted}><td>{row.id}{#if row.deleted} (удалено){/if}</td><td>{displayDate(row.payment_date)}</td><td>{money(row.amount)}</td><td>
