@@ -16,15 +16,17 @@
     finally { busy = false; }
   }
   const names = { design: 'Дизайн/препресс', redaction: 'Редактура', paper: 'Бумага', imagesetter: 'Фотовывод', print: 'Печать', afterprint: 'Постпечать', compile: 'Сборка', other_works: 'Прочие работы', manager: 'Менеджер' };
+  export let storedCalculation = null;
 </script>
 
 <button type="button" class="btn btn-info" disabled={busy} onclick={calculate}>{busy ? 'Пересчёт…' : 'Пересчитать'}</button>
+{#if storedCalculation}<span class="calculation-status text-muted">{storedCalculation.message}</span>{/if}
 {#if error}<div class="alert alert-danger">{error}</div>{/if}
 {#if result}
   {#if result.missing.length}<div class="alert alert-danger">Не найдены цены: {result.missing.join(', ')}</div>{/if}
   <table class="table table-bordered"><thead><tr><th>Состав заказа</th><th>Базовая стоимость</th><th>Скидка/наценка</th><th>Итоговая стоимость</th></tr></thead><tbody>
     {#each Object.entries(result.markups) as [key, row]}<tr><td>{names[key] ?? key}</td><td>{row.base}</td><td>{key === 'manager' ? result.manager_markup : row.markup}</td><td>{row.total}</td></tr>{/each}
-  </tbody><tfoot><tr><th>Итого</th><td>{result.base}</td><td>Цена изделия: {result.item}</td><td>{result.result}</td></tr></tfoot></table>
+  </tbody><tfoot><tr><th>Расчетная стоимость</th><td>{result.base}</td><td>Цена изделия: {result.item}</td><td>{result.result}</td></tr><tr><th>Стоимость продажи</th><td colspan="3">{result.stored_total}</td></tr></tfoot></table>
   {#each Object.entries(result.work_details) as [kind, rows]}
     {#if rows.length}
       <h4>{names[kind] ?? kind}</h4>

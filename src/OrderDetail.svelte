@@ -100,7 +100,7 @@
 
 {#if data}
 <div class="container-fluid order-detail"><div class="row"><div class="col-sm-12"><h1 class="page-header">{data.order.title} <small>({data.order.type})</small></h1></div></div>
-  <Calculation {orderId} />
+  <Calculation {orderId} storedCalculation={data.calculation} />
   <ReportActions kind="orders" identity={orderId} />
   <div class="row"><div class="col-sm-12"><form onsubmit={(event) => { event.preventDefault(); save(); }}>
     <div class="row"><div class="col-md-6"><div class="form-group"><label for="detail_title">Название</label><input class="form-control" id="detail_title" bind:value={title} /></div></div><div class="col-md-3"><div class="form-group"><label for="detail_format">Формат</label><input class="form-control" id="detail_format" bind:value={form.format} /></div></div><div class="col-md-3"><div class="form-group"><label for="detail_printing">Тираж</label><input class="form-control" id="detail_printing" type="number" bind:value={form.printing} /></div></div></div>
