@@ -45,6 +45,7 @@
   let path = window.location.pathname;
   $: orderPath = path.match(/^\/orders\/(\d+)$/);
   $: createPath = path.match(/^\/orders\/add\/(book|poly|wide|souvenir)$/);
+  $: copyPath = path.match(/^\/orders\/(\d+)\/copy\/?$/);
   $: pricePath = path.match(/^\/prices\/([a-z]+)\/(\d+)\/?$/);
   $: catalogPath = path.match(/^\/prices\/([a-z]+)\/?$/);
   $: priceEditorPath = path.match(/^\/prices\/([a-z]+)\/(\d+)\/(?:(create)|(\d+)(?:\/(edit|delete))?)\/?$/);
@@ -147,6 +148,8 @@
   <PrinterChildren {...printerChildPath} />
 {:else if printerPath}
   <ReferencePrinters identity={printerPath[1] === 'create' ? null : printerPath[1]} action={printerPath[1] === 'create' ? 'create' : (printerPath[2] ?? (printerPath[1] ? 'show' : 'list'))} />
+{:else if copyPath}
+  <OrderForm sourceId={copyPath[1]} onSaved={(id) => (window.location.href = `/orders/${id}`)} />
 {:else if createPath}
   <OrderForm orderType={createPath[1]} onSaved={(id) => (window.location.href = `/orders/${id}`)} />
 {:else if orderPath}
