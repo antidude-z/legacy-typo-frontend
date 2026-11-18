@@ -3,6 +3,7 @@
 
   export let orderId;
   export let onMessage = () => {};
+  export let onChanged = () => {};
 
   const definitions = [
     ['prepresses', 'Дизайн/препресс', 'prepress_id'],
@@ -41,6 +42,7 @@
       onMessage(itemId ? 'Работа изменена' : 'Работа добавлена');
       editing = null;
       await load();
+      onChanged();
     } catch (error) { onMessage(error.message); }
     finally { busy = false; }
   }
@@ -57,6 +59,7 @@
       const response = await fetch(`/api/orders/${orderId}/${operation}/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Не удалось удалить работу');
       await load();
+      onChanged();
     } catch (error) { onMessage(error.message); }
     finally { busy = false; }
   }
@@ -68,6 +71,19 @@
       const response = await fetch(`/api/orders/${orderId}/${operation}/${id}/restore`, { method: 'POST' });
       if (!response.ok) throw new Error('Не удалось восстановить работу');
       await load();
+      onChanged();
+    } catch (error) { onMessage(error.message); }
+    finally { busy = false; }
+  }
+
+  async function permanentDelete(operation, id) {
+    if (busy || !data.permissions?.permanent_delete) return;
+    busy = true;
+    try {
+      const response = await fetch(`/api/orders/${orderId}/${operation}/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Не удалось удалить работу окончательно');
+      await load();
+      onChanged();
     } catch (error) { onMessage(error.message); }
     finally { busy = false; }
   }
@@ -91,7 +107,7 @@
           {#if editing?.operation === operation}<button class="btn btn-default btn-sm" type="button" onclick={() => editing = null}>Отмена</button>{/if}
         </form>
         <table class="table table-striped table-bordered"><thead><tr><th>Работа</th><th>Количество</th>{#if operation === 'compiles'}<th>Приладка</th>{/if}<th>Действия</th></tr></thead><tbody>
-          {#each data.operations[operation] ?? [] as item}<tr class:warning={item.deleted}><td>{(data.choices[operation] ?? []).find((choice) => choice.id == item.reference_id)?.title ?? `#${item.reference_id}`}</td><td>{item.quantity}</td>{#if operation === 'compiles'}<td>{item.fitting ? 'Да' : 'Нет'}</td>{/if}<td>{#if item.deleted}<span class="text-muted">Удалена</span> <button class="btn btn-default btn-xs" type="button" disabled={busy || !data.permissions?.restore} onclick={() => restore(operation, item.id)}>Восстановить</button>{:else}<button class="btn btn-default btn-xs" type="button" disabled={busy} onclick={() => edit(operation, item, foreignKey)}>Изменить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy} onclick={() => remove(operation, item.id)}>Удалить</button>{/if}</td></tr>{:else}<tr><td colspan={operation === 'compiles' ? 4 : 3}>Работы не добавлены</td></tr>{/each}
+          {#each data.operations[operation] ?? [] as item}<tr class:warning={item.deleted}><td>{(data.choices[operation] ?? []).find((choice) => choice.id == item.reference_id)?.title ?? `#${item.reference_id}`}</td><td>{item.quantity}</td>{#if operation === 'compiles'}<td>{item.fitting ? 'Да' : 'Нет'}</td>{/if}<td>{#if item.deleted}<span class="text-muted">Удалена</span> <button class="btn btn-default btn-xs" type="button" disabled={busy || !data.permissions?.restore} onclick={() => restore(operation, item.id)}>Восстановить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy || !data.permissions?.permanent_delete} onclick={() => permanentDelete(operation, item.id)}>Удалить окончательно</button>{:else}<button class="btn btn-default btn-xs" type="button" disabled={busy} onclick={() => edit(operation, item, foreignKey)}>Изменить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy} onclick={() => remove(operation, item.id)}>Удалить</button>{/if}</td></tr>{:else}<tr><td colspan={operation === 'compiles' ? 4 : 3}>Работы не добавлены</td></tr>{/each}
         </tbody></table>
       </div>
     </section>

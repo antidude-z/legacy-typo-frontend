@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import { priceError } from './pricing.js';
   export let orderId;
   let result = null;
@@ -17,6 +18,11 @@
   }
   const names = { design: 'Дизайн/препресс', redaction: 'Редактура', paper: 'Бумага', imagesetter: 'Фотовывод', print: 'Печать', afterprint: 'Постпечать', compile: 'Сборка', other_works: 'Прочие работы', manager: 'Менеджер' };
   export let storedCalculation = null;
+  onMount(() => {
+    const refresh = () => calculate();
+    window.addEventListener('order-calculation-changed', refresh);
+    return () => window.removeEventListener('order-calculation-changed', refresh);
+  });
 </script>
 
 <button type="button" class="btn btn-info" disabled={busy} onclick={calculate}>{busy ? 'Пересчёт…' : 'Пересчитать'}</button>
