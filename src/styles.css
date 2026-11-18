@@ -102,7 +102,8 @@ a:hover { color: #23527c; text-decoration: underline; }
 .pagination-controls button:disabled { opacity: .65; cursor: not-allowed; }
 .order-create-menu { display: block; top: auto; left: auto; }
 .nav-tabs-static { display: flex; gap: 0; margin: 20px 0 0; padding: 0; list-style: none; border-bottom: 1px solid #ddd; }
-.nav-tabs-static li { padding: 10px 15px; border: 1px solid transparent; }
+.nav-tabs-static li { padding: 0; border: 1px solid transparent; }
+.nav-tabs-static button { padding: 10px 15px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .nav-tabs-static .active { border: 1px solid #ddd; border-bottom-color: #fff; margin-bottom: -1px; background: #fff; }
 .save-message { margin-left: 10px; color: #3c763d; }
 .calculation-status { margin-left: 10px; }

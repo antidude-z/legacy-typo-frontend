@@ -61,6 +61,17 @@
     finally { busy = false; }
   }
 
+  async function restore(operation, id) {
+    if (busy) return;
+    busy = true;
+    try {
+      const response = await fetch(`/api/orders/${orderId}/${operation}/${id}/restore`, { method: 'POST' });
+      if (!response.ok) throw new Error('Не удалось восстановить работу');
+      await load();
+    } catch (error) { onMessage(error.message); }
+    finally { busy = false; }
+  }
+
   onMount(load);
 </script>
 
@@ -80,7 +91,7 @@
           {#if editing?.operation === operation}<button class="btn btn-default btn-sm" type="button" onclick={() => editing = null}>Отмена</button>{/if}
         </form>
         <table class="table table-striped table-bordered"><thead><tr><th>Работа</th><th>Количество</th>{#if operation === 'compiles'}<th>Приладка</th>{/if}<th>Действия</th></tr></thead><tbody>
-          {#each data.operations[operation] ?? [] as item}<tr><td>{(data.choices[operation] ?? []).find((choice) => choice.id == item.reference_id)?.title ?? `#${item.reference_id}`}</td><td>{item.quantity}</td>{#if operation === 'compiles'}<td>{item.fitting ? 'Да' : 'Нет'}</td>{/if}<td><button class="btn btn-default btn-xs" type="button" disabled={busy} onclick={() => edit(operation, item, foreignKey)}>Изменить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy} onclick={() => remove(operation, item.id)}>Удалить</button></td></tr>{:else}<tr><td colspan={operation === 'compiles' ? 4 : 3}>Работы не добавлены</td></tr>{/each}
+          {#each data.operations[operation] ?? [] as item}<tr class:warning={item.deleted}><td>{(data.choices[operation] ?? []).find((choice) => choice.id == item.reference_id)?.title ?? `#${item.reference_id}`}</td><td>{item.quantity}</td>{#if operation === 'compiles'}<td>{item.fitting ? 'Да' : 'Нет'}</td>{/if}<td>{#if item.deleted}<span class="text-muted">Удалена</span> <button class="btn btn-default btn-xs" type="button" disabled={busy || !data.permissions?.restore} onclick={() => restore(operation, item.id)}>Восстановить</button>{:else}<button class="btn btn-default btn-xs" type="button" disabled={busy} onclick={() => edit(operation, item, foreignKey)}>Изменить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy} onclick={() => remove(operation, item.id)}>Удалить</button>{/if}</td></tr>{:else}<tr><td colspan={operation === 'compiles' ? 4 : 3}>Работы не добавлены</td></tr>{/each}
         </tbody></table>
       </div>
     </section>
