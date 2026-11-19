@@ -9,7 +9,7 @@ async function login(page, email) {
 }
 
 test('limited role cannot administer permissions or accounting', async ({ page }) => {
-  await login(page, 'limited@example.test');
+  await login(page, 'reader@example.test');
   for (const path of ['/options/permissions', '/accounting/bills']) {
     await page.goto(path);
     await expect(page.locator('.alert-danger')).toBeVisible();

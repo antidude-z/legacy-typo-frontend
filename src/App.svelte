@@ -43,6 +43,7 @@
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
   let error = '';
+  let sessionLoaded = false;
   let path = window.location.pathname;
   $: orderPath = path.match(/^\/orders\/(\d+)$/);
   $: createPath = path.match(/^\/orders\/add\/(book|poly|wide|souvenir)$/);
@@ -71,6 +72,7 @@
   async function loadSession() {
     const response = await fetch('/api/session');
     session = await response.json();
+    sessionLoaded = true;
   }
 
   async function loadUsers() {
@@ -106,15 +108,19 @@
   <title>Типография</title>
 </svelte:head>
 
-<Navigation menu={session.menu} user={session.user} onLogout={logout} />
+<Navigation menu={session.business_access ? session.menu : []} user={session.user} registrationEnabled={session.public_registration_enabled === true} onLogout={logout} />
 {#if path === '/auth/login'}
-  <Login {users} {error} onSubmit={login} />
+  <Login {users} {error} registrationEnabled={session.public_registration_enabled === true} onSubmit={login} />
 {:else if authPath?.kind === 'register'}
-  <Register />
+  {#if sessionLoaded && session.public_registration_enabled}<Register />{:else if sessionLoaded}<div class="container-fluid"><div class="alert alert-info">Регистрация отключена. Обратитесь к администратору.</div></div>{/if}
 {:else if authPath?.kind === 'request'}
   <PasswordReset kind="request" />
 {:else if authPath?.kind === 'reset'}
   <PasswordReset kind="reset" token={authPath.token} />
+{:else if sessionLoaded && session.authenticated && !session.business_access}
+  <div class="container-fluid"><div class="alert alert-info">Доступ ожидает одобрения администратора. Обратитесь к администратору для назначения роли.</div></div>
+{:else if !sessionLoaded}
+  <div class="container-fluid">Загрузка…</div>
 {:else if priceEditorPath}
   <PriceEditor kind={priceEditorPath[1]} itemId={priceEditorPath[2]} priceId={priceEditorPath[4]} action={priceEditorPath[3] ? 'create' : (priceEditorPath[5] ?? 'edit')} />
 {:else if pricePath}
