@@ -5,6 +5,7 @@
   export let onUnauthenticated;
   let data = { items: [], pagination: { page: 1, per_page: 30, total: 0, last_page: 1 }, metadata: { statuses: [], managers: [], customers: [], types: [] }, filter: {} };
   let filterOpen = false;
+  let createOpen = false;
   let form = { filter_status: [], filter_date_from: '', filter_date_to: '', filter_number: '', filter_bill: '', filter_manager: '', filter_customer: '', filter_type: '', filter_text: '' };
 
   async function load(query = '') {
@@ -43,13 +44,13 @@
 <div class="container-fluid orders-page">
   <div class="row"><div class="col-sm-12"><h1 class="page-header">Заказы</h1></div></div>
   <div class="row"><div class="col-sm-12">
-    <div class="btn-group"><button class="btn btn-default dropdown-toggle" onclick={() => (filterOpen = !filterOpen)}>＋ Новый заказ <span class="caret">▼</span></button>
-      {#if filterOpen}<ul class="dropdown-menu order-create-menu"><li><a href="/orders/add/book">Книги, брошюры</a></li><li><a href="/orders/add/poly">Полиграфия</a></li><li><a href="/orders/add/wide">Ш/ф печать, стенды</a></li></ul>{/if}
+    <div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" aria-expanded={createOpen} onclick={() => (createOpen = !createOpen)}>＋ Новый заказ <span class="caret">▼</span></button>
+      {#if createOpen}<ul class="dropdown-menu order-create-menu"><li><a href="/orders/add/book">Книги, брошюры</a></li><li><a href="/orders/add/poly">Полиграфия</a></li><li><a href="/orders/add/wide">Ш/ф печать, стенды</a></li><li><a href="/orders/add/souvenir">Сувенирная продукция</a></li></ul>{/if}
     </div>
   </div></div>
   <div class="row spacer"><div class="col-sm-12">&nbsp;</div></div>
   <div class="row"><div class="col-sm-12"><div class="panel panel-default">
-    <div class="panel-heading"><button class="panel-title filter-toggle" onclick={() => (filterOpen = !filterOpen)}>⌕ Поиск-фильтр</button></div>
+    <div class="panel-heading"><button type="button" class="panel-title filter-toggle" aria-expanded={filterOpen} onclick={() => (filterOpen = !filterOpen)}>⌕ Поиск-фильтр</button></div>
     {#if filterOpen}<div class="panel-body"><form onsubmit={(event) => { event.preventDefault(); applyFilter(); }}>
       <div class="row">
         <div class="col-sm-4"><label>Менеджер<select class="form-control input-sm" bind:value={form.filter_manager}><option value="">- Все -</option>{#each data.metadata.managers as item}<option value={item.id}>{item.title}</option>{/each}</select></label><label>Заказчик<select class="form-control input-sm" bind:value={form.filter_customer}><option value="">- Все -</option>{#each data.metadata.customers as item}<option value={item.id}>{item.title}</option>{/each}</select></label></div>
@@ -65,3 +66,7 @@
     <div class="pagination-controls"><button class="btn btn-default btn-sm" disabled={data.pagination.page <= 1} onclick={() => page(data.pagination.page - 1)}>‹</button><span>Страница {data.pagination.page} из {data.pagination.last_page}</span><button class="btn btn-default btn-sm" disabled={data.pagination.page >= data.pagination.last_page} onclick={() => page(data.pagination.page + 1)}>›</button></div>
   </div></div>
 </div>
+
+<style>
+  .order-create-menu { position: static; }
+</style>

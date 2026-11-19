@@ -17,6 +17,9 @@
     </div>
     <div id="application-navigation" class:collapse={!open} class="navbar-collapse">
       <ul class="nav navbar-nav">
+        {#if user && !menu.some(link => link.link === 'orders')}
+          <li><a href="/orders">Заказы</a></li>
+        {/if}
         {#each menu as link}
           {#if link.below?.length}
             <li class="dropdown">

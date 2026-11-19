@@ -38,6 +38,7 @@
   import Register from './Register.svelte';
   import PasswordReset from './PasswordReset.svelte';
   import { authRoute } from './authRoutes.js';
+  import MainOptions from './MainOptions.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
   let users = {};
@@ -96,6 +97,7 @@
   onMount(async () => {
     if (recalculatePricePath) { window.location.replace(`/prices/${recalculatePricePath[1]}`); return; }
     await loadSession();
+    if (path === '/') { window.location.replace(session.authenticated ? '/orders' : '/auth/login'); return; }
     if (path === '/auth/login') await loadUsers();
   });
 </script>
@@ -129,6 +131,8 @@
   <Payroll {...payrollPath} />
 {:else if permissionsPath}
   <Permissions />
+{:else if path === '/options/main'}
+  <MainOptions />
 {:else if paymentPath}
   <AccountingPayment {...paymentPath} />
 {:else if billPath}

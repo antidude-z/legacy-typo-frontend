@@ -4,9 +4,13 @@
   let busy = false;
   async function submit() {
     busy = true; error = '';
-    const response = await fetch('/api/auth/register', { method: 'POST', body: new URLSearchParams(form), redirect: 'manual' });
-    if (response.status === 303) { window.location.href = '/orders'; return; }
-    error = (await response.json()).message ?? 'Не удалось зарегистрироваться.'; busy = false;
+    try {
+      const response = await fetch('/api/auth/register', { method: 'POST', body: new URLSearchParams(form), redirect: 'manual' });
+      if (response.status === 303 || response.type === 'opaqueredirect') { window.location.href = '/orders'; return; }
+      error = (await response.json()).message ?? 'Не удалось зарегистрироваться.';
+    } catch {
+      error = 'Ошибка сети. Проверьте соединение и повторите попытку.';
+    } finally { busy = false; }
   }
 </script>
 <div class="container-fluid"><div class="row"><div class="col-md-8 col-md-offset-2"><div class="panel panel-default"><div class="panel-heading">Регистрация</div><div class="panel-body">
