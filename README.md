@@ -1,3 +1,10 @@
+# VM synchronization
+
+Use GitHub push/pull on `main`, with `git pull --ff-only` on the VM. The reviewed
+`pre-github-sync-schema-reconciliation` stash contained only the Nginx report
+proxy regex, already present in committed `nginx.conf`; no separate VM variant
+is required. Syncing source does not rebuild the running frontend container.
+
 # Typography frontend
 
 Svelte 5 frontend for the legacy typography application.
