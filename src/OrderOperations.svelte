@@ -102,7 +102,7 @@
             <option value="">Выберите работу</option>
             {#each data.choices[operation] ?? [] as choice}<option value={choice.id}>{choice.title}</option>{/each}
           </select>
-          <input class="form-control" type="number" min="0" value={forms[operation]?.quantity ?? 1} onchange={(event) => setField(operation, 'quantity', event.currentTarget.value)} required aria-label="Количество" />
+          <input class="form-control" type="number" min="0" step={['prepresses', 'redactions'].includes(operation) ? '0.01' : '1'} value={forms[operation]?.quantity ?? 1} onchange={(event) => setField(operation, 'quantity', event.currentTarget.value)} required aria-label="Количество" />
           {#if operation === 'compiles'}<label><input type="checkbox" checked={forms[operation]?.fitting ?? false} onchange={(event) => setField(operation, 'fitting', event.currentTarget.checked)} /> Приладка</label>{/if}
           <button class="btn btn-primary btn-sm" type="submit" disabled={busy}>{editing?.operation === operation ? 'Сохранить' : 'Добавить'}</button>
           {#if editing?.operation === operation}<button class="btn btn-default btn-sm" type="button" onclick={() => editing = null}>Отмена</button>{/if}
