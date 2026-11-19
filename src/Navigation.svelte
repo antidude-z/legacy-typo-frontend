@@ -9,13 +9,13 @@
 <nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
-      <button class="navbar-toggle" type="button" aria-label="Навигация" onclick={() => (open = !open)}>
+      <button class="navbar-toggle" type="button" aria-label="Навигация" aria-expanded={open} aria-controls="application-navigation" onclick={() => (open = !open)}>
         <span class="sr-only">Навигация</span>
         <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href="/">Типография</a>
     </div>
-    <div class:collapse={!open} class="navbar-collapse">
+    <div id="application-navigation" class:collapse={!open} class="navbar-collapse">
       <ul class="nav navbar-nav">
         {#each menu as link}
           {#if link.below?.length}

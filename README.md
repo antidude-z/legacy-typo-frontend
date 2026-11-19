@@ -1,3 +1,13 @@
+# Responsive and accessibility regression checks
+
+Run `npm run test:e2e -- --grep "responsive accessibility"` for axe-core
+WCAG A/AA checks at 375, 768, and 1440 pixels. The isolated fixture covers login,
+Orders, book creation, Bills, prepress references, and payroll creation; tests
+also check page overflow and mobile navigation state. Violations are attached
+to Playwright results. This sampled automation is not a screen-reader audit,
+cross-browser certification, or visual parity acceptance. No business database
+is used by the default local test setup.
+
 # VM synchronization
 
 Use GitHub push/pull on `main`, with `git pull --ff-only` on the VM. The reviewed
