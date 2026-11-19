@@ -12,7 +12,7 @@
     ['others', 'Прочие работы', 'other_work_id'],
   ];
   let data = { choices: {}, operations: {} };
-  let forms = {};
+  let forms = Object.fromEntries(definitions.map(([operation, , foreignKey]) => [operation, { [foreignKey]: '', quantity: 1, fitting: false }]));
   let editing = null;
   let busy = false;
 
@@ -21,7 +21,7 @@
   }
 
   function setField(operation, field, value) {
-    forms = { ...forms, [operation]: { ...forms[operation], [field]: value } };
+    forms = { ...forms, [operation]: { quantity: 1, fitting: false, ...forms[operation], [field]: value } };
   }
 
   async function load() {
@@ -97,7 +97,7 @@
       <div class="panel-heading">{title}</div>
       <div class="panel-body">
         <form class="operation-form" onsubmit={(event) => { event.preventDefault(); add(operation, foreignKey); }}>
-          <select class="form-control" value={forms[operation]?.[foreignKey] ?? ''} onchange={(event) => setField(operation, foreignKey, event.currentTarget.value)} required>
+          <select class="form-control" bind:value={forms[operation][foreignKey]} required>
             <option value="">Выберите работу</option>
             {#each data.choices[operation] ?? [] as choice}<option value={choice.id}>{choice.title}</option>{/each}
           </select>

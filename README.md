@@ -25,5 +25,7 @@ reusing an unknown service. Never use this fixture as a business database.
 Failure screenshots and traces are saved in ignored `test-results/`.
 
 Current browser coverage: real login, all order types, edit/copy, tabs,
-reference creation, and section navigation. Full workflow and VM browser
+reference creation, blank editing, operation lifecycle, bill/payment creation,
+payment/shipping downloads, payroll save/export, failed-save input retention,
+and section navigation. Full workflow and VM browser
 coverage remain tracked in `../MIGRATION.md`.

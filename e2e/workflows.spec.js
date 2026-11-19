@@ -54,3 +54,87 @@ test('reference creation and application section navigation', async ({ page }) =
     await expect(page.locator('[role="alert"]')).toHaveCount(0);
   }
 });
+
+test('blank and prepress create/edit/delete/restore', async ({ page }) => {
+  await page.goto('/orders/add/poly');
+  await page.getByLabel('Название', { exact: true }).fill('Browser production');
+  await page.getByRole('button', { name: 'Создать заказ', exact: true }).click();
+  await expect(page).toHaveURL(/\/orders\/\d+$/);
+  await page.getByRole('button', { name: 'Заготовки', exact: true }).click();
+  await page.getByPlaceholder('Название заготовки').fill('Browser blank');
+  await page.getByRole('button', { name: 'Новая заготовка', exact: true }).click();
+  const blank = page.getByRole('row').filter({ has: page.getByRole('cell', { name: 'Browser blank', exact: true }) });
+  await expect(blank).toBeVisible();
+  await blank.getByRole('button', { name: 'Изменить', exact: true }).click();
+  await page.getByPlaceholder('Название заготовки').fill('Browser blank edited');
+  await page.getByRole('button', { name: 'Сохранить заготовку' }).click();
+  await expect(page.getByRole('cell', { name: 'Browser blank edited', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Дизайн/препресс', exact: true }).click();
+  const section = page.locator('.operation-panel').filter({ has: page.locator('.panel-heading', { hasText: 'Дизайн/препресс' }) });
+  await section.locator('select').selectOption({ label: 'Browser prepress' });
+  await section.getByRole('spinbutton').fill('1');
+  expect(await section.locator('form').evaluate(form => [...form.elements].filter(item => !item.checkValidity()).map(item => ({ html: item.outerHTML, message: item.validationMessage })))).toEqual([]);
+  await section.getByRole('button', { name: 'Добавить', exact: true }).click();
+  await expect(section.getByRole('cell', { name: 'Browser prepress', exact: true })).toBeVisible();
+  await section.getByRole('button', { name: 'Изменить', exact: true }).click();
+  await section.getByRole('spinbutton').fill('3');
+  await section.getByRole('button', { name: 'Сохранить', exact: true }).click();
+  await expect(section.getByRole('cell', { name: '3', exact: true })).toBeVisible();
+  await section.getByRole('button', { name: 'Удалить', exact: true }).click();
+  await section.getByRole('button', { name: 'Восстановить', exact: true }).click();
+  await expect(section.getByRole('button', { name: 'Изменить', exact: true })).toBeVisible();
+});
+
+test('bill, payment edit and report form downloads', async ({ page }) => {
+  await page.goto('/accounting/bills/create');
+  const number = `E2E-${Date.now()}`;
+  await page.getByLabel('Номер счета', { exact: true }).fill(number);
+  await page.getByLabel('Дата счета', { exact: true }).fill('2026-01-15');
+  await page.getByLabel('Сумма счета', { exact: true }).fill('125.50');
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+  await expect(page).toHaveURL(/\/accounting\/bills(?:\?|$)/);
+  const row = page.getByRole('row').filter({ has: page.getByRole('cell', { name: number, exact: true }) });
+  const editURL = await row.getByRole('link', { name: 'Редактировать', exact: true }).getAttribute('href');
+  await page.goto(editURL);
+  const id = new URL(page.url()).pathname.split('/')[3];
+  await page.getByRole('button', { name: 'Новый платеж' }).click();
+  await page.getByLabel('Сумма платежа', { exact: true }).fill('25.50');
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/accounting/bills/${id}/edit$`));
+  await expect(page.getByText('Итого оплачено:')).toContainText('25.50');
+  await page.getByRole('button', { name: 'Заявка на оплату', exact: true }).click();
+  await page.getByLabel('Институт, подразделение, кафедра', { exact: true }).fill('Browser institute');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Сформировать', exact: true }).click();
+  expect((await download).suggestedFilename()).toMatch(/\.xls$/);
+  await page.getByRole('button', { name: 'Документ на отгрузку', exact: true }).click();
+  await expect(page.getByLabel('Бухгалтер', { exact: true }).locator('option')).not.toHaveCount(0);
+  const shipping = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Сформировать', exact: true }).click();
+  expect((await shipping).suggestedFilename()).toMatch(/\.pdf$/);
+});
+
+test('payroll create, save and workbook download', async ({ page }) => {
+  await page.goto('/reports/payrolls/create');
+  await page.getByLabel('Менеджер', { exact: true }).selectOption({ label: 'QA Browser' });
+  await page.getByLabel('Год', { exact: true }).fill('2026');
+  await page.getByRole('button', { name: 'Перейти', exact: true }).click();
+  await expect(page).toHaveURL(/\/reports\/payrolls\/\d+$/);
+  await page.getByLabel('Оклад', { exact: true }).fill('1000');
+  const saved = page.waitForResponse(response => response.request().method() === 'PATCH' && response.url().includes('/api/reports/payrolls/'));
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
+  expect((await saved).ok()).toBeTruthy();
+  const download = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Экспорт XLS', exact: true }).click();
+  expect((await download).suggestedFilename()).toMatch(/payroll-\d+\.xls$/);
+});
+
+test('failed save keeps entered order data', async ({ page }) => {
+  await page.goto('/orders/add/poly');
+  await page.getByLabel('Название', { exact: true }).fill('Unsaved input');
+  await page.route('**/api/orders/add/poly', route => route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ message: 'Rejected fixture' }) }));
+  await page.getByRole('button', { name: 'Создать заказ', exact: true }).click();
+  await expect(page.locator('.alert-danger')).toBeVisible();
+  await expect(page.getByLabel('Название', { exact: true })).toHaveValue('Unsaved input');
+  await expect(page.getByRole('button', { name: 'Создать заказ', exact: true })).toBeEnabled();
+});

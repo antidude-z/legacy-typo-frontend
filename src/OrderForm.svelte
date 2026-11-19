@@ -22,7 +22,7 @@
     loadingFormats = true;
     formatError = '';
     try {
-      const response = await fetch(`/api/orders/formats/${orderType}/${encodeURIComponent(prefix)}`);
+      const response = await fetch(`/api/orders/formats/${orderType}${prefix ? `/${encodeURIComponent(prefix)}` : ''}`);
       if (!response.ok) throw new Error('format lookup failed');
       formatSuggestions = await response.json();
     } catch {
