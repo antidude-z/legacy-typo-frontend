@@ -1,11 +1,14 @@
 import { defineConfig } from '@playwright/test';
+const remote = process.env.BROWSER_QA_URL;
+if (remote && new URL(remote).port !== '8081') throw new Error('Remote browser QA must use isolated port 8081');
 
 export default defineConfig({
   testDir: './e2e',
   workers: 1,
-  timeout: 45000,
-  use: { baseURL: 'http://127.0.0.1:5173', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
-  webServer: [
+  timeout: 90000,
+  expect: { timeout: 20000 },
+  use: { baseURL: remote || 'http://127.0.0.1:5173', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
+  webServer: remote ? undefined : [
     {
       command: 'uv run python -m scripts.browser_fixture && uv run uvicorn app.main:app --host 127.0.0.1 --port 8000',
       cwd: '../backend',

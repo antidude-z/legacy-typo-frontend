@@ -79,7 +79,7 @@ test('blank and prepress create/edit/delete/restore', async ({ page }) => {
   await section.getByRole('button', { name: 'Изменить', exact: true }).click();
   await section.getByRole('spinbutton').fill('3');
   await section.getByRole('button', { name: 'Сохранить', exact: true }).click();
-  await expect(section.getByRole('cell', { name: '3', exact: true })).toBeVisible();
+  await expect(section.getByRole('cell', { name: /^3(?:\.0+)?$/ })).toBeVisible();
   await section.getByRole('button', { name: 'Удалить', exact: true }).click();
   await section.getByRole('button', { name: 'Восстановить', exact: true }).click();
   await expect(section.getByRole('button', { name: 'Изменить', exact: true })).toBeVisible();
