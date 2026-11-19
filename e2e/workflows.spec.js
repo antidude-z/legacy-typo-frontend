@@ -8,6 +8,7 @@ test('historical missing selector values survive unrelated browser edits', async
   const saved = page.waitForResponse(response => response.url().endsWith('/api/accounting/bills/88001') && response.request().method() === 'PATCH');
   await page.locator('button[type="submit"]').click();
   expect((await saved).status()).toBe(200);
+  await expect(page).toHaveURL(/\/accounting\/bills$/);
   await page.goto('/accounting/bills/88001/edit');
   await expect(page.locator('#bill_payer')).toHaveValue('88002');
   await page.goto('/references/customers/88001/edit');
