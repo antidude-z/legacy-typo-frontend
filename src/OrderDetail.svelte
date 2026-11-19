@@ -67,6 +67,7 @@
     if (saving) return;
     saving = true;
     try {
+      form = { ...form, width: Number(form.width) || 0, height: Number(form.height) || 0 };
       const response = await fetch(`/api/orders/${orderId}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ ...form, user_id:form.manager_id || null, customer_id:form.customer_id || null, bill_id:form.bill_id || null, title, markups: data.markups }) });
       if (!response.ok) { message = 'Не удалось сохранить'; return; }
       window.location.href = destination;

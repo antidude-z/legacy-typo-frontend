@@ -80,7 +80,8 @@
   async function login(credentials) {
     const body = new URLSearchParams(credentials);
     const response = await fetch('/api/auth/login', { method: 'POST', body, redirect: 'manual' });
-    if (response.status === 303) {
+    // Browsers expose manual redirects as opaque responses (status 0).
+    if (response.status === 303 || response.type === 'opaqueredirect') {
       window.location.href = '/orders';
       return;
     }
