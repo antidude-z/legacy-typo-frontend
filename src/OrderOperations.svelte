@@ -98,6 +98,7 @@
       <div class="panel-body">
         <form class="operation-form" onsubmit={(event) => { event.preventDefault(); add(operation, foreignKey); }}>
           <select class="form-control" bind:value={forms[operation][foreignKey]} required>
+            {#if forms[operation][foreignKey] && !(data.choices[operation] ?? []).some(item => item.id == forms[operation][foreignKey])}<option value={forms[operation][foreignKey]}>Unavailable work #{forms[operation][foreignKey]}</option>{/if}
             <option value="">Выберите работу</option>
             {#each data.choices[operation] ?? [] as choice}<option value={choice.id}>{choice.title}</option>{/each}
           </select>

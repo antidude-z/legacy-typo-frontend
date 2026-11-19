@@ -1,5 +1,22 @@
 import { test, expect } from '@playwright/test';
 
+test('historical missing selector values survive unrelated browser edits', async ({ page }) => {
+  test.skip(Boolean(process.env.BROWSER_QA_URL), 'Uses dedicated local orphan fixtures');
+  await page.goto('/accounting/bills/88001/edit');
+  await expect(page.locator('#bill_payer')).toHaveValue('88002');
+  await expect(page.locator('#bill_manager')).toHaveValue('88003');
+  const saved = page.waitForResponse(response => response.url().endsWith('/api/accounting/bills/88001') && response.request().method() === 'PATCH');
+  await page.locator('button[type="submit"]').click();
+  expect((await saved).status()).toBe(200);
+  await page.goto('/accounting/bills/88001/edit');
+  await expect(page.locator('#bill_payer')).toHaveValue('88002');
+  await page.goto('/references/customers/88001/edit');
+  await expect(page.locator('#customer_customer_group_id')).toHaveValue('88002');
+  const customerSaved = page.waitForResponse(response => response.url().endsWith('/api/customer-references/88001') && response.request().method() === 'PATCH');
+  await page.locator('button[type="submit"]').click();
+  expect((await customerSaved).status()).toBe(200);
+});
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/auth/login');
   await expect(page.locator('#email option[value="browser@example.test"]')).toBeAttached();
