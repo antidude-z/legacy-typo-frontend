@@ -79,7 +79,36 @@ test('S03 Orders reader has read-only fields and operation controls', async ({ p
     await reader.getByRole('button', { name: 'Дизайн/препресс', exact: true }).click();
     await expect(reader.locator('.operation-panel')).toHaveCount(4);
     await expect(reader.locator('.operation-form')).toHaveCount(0);
+    await reader.getByRole('button', { name: 'Заготовки', exact: true }).click();
+    await expect(reader.locator('.blank-form')).toHaveCount(0);
+    for (const path of ['/orders/add/poly', new URL(orderURL).pathname + '/copy']) {
+      await reader.goto(path);
+      await expect(reader.locator('.alert-danger')).toBeVisible();
+      await expect(reader.locator('button[type="submit"]')).toHaveCount(0);
+    }
   } finally {
     await context.close();
   }
+});
+
+test('S03 authorized blank trash lifecycle preserves the same blank', async ({ page }) => {
+  await login(page, 'browser@example.test');
+  await page.goto('/orders/add/poly');
+  await page.getByLabel('Название', { exact: true }).fill('S03 blank lifecycle');
+  await page.getByRole('button', { name: 'Создать заказ', exact: true }).click();
+  await expect(page).toHaveURL(/\/orders\/\d+$/);
+  await page.getByRole('button', { name: 'Заготовки', exact: true }).click();
+  await page.getByPlaceholder('Название заготовки').fill('S03 disposable blank');
+  await page.getByRole('button', { name: 'Новая заготовка', exact: true }).click();
+  const row = page.getByRole('row').filter({ hasText: 'S03 disposable blank' });
+  await expect(row).toHaveCount(1);
+  await row.getByRole('button', { name: 'Удалить', exact: true }).click();
+  await expect(row.getByRole('button', { name: 'Восстановить', exact: true })).toBeVisible();
+  await expect(row.getByRole('button', { name: 'Изменить', exact: true })).toHaveCount(0);
+  await row.getByRole('button', { name: 'Восстановить', exact: true }).click();
+  await expect(row.getByRole('button', { name: 'Изменить', exact: true })).toBeVisible();
+  await expect(row).toHaveCount(1);
+  await row.getByRole('button', { name: 'Удалить', exact: true }).click();
+  await row.getByRole('button', { name: 'Удалить окончательно', exact: true }).click();
+  await expect(row).toHaveCount(0);
 });

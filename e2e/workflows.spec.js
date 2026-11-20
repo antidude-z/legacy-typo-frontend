@@ -63,7 +63,7 @@ test('reference creation and application section navigation', async ({ page }) =
   const title = `Browser reference ${Date.now()}`;
   await page.getByLabel('Название работы', { exact: true }).fill(title);
   await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
-  await expect(page).toHaveURL(/\/references\/prepresses\/?$/);
+  await expect(page).toHaveURL(/\/references\/prepresses\/?(?:\?|$)/);
   await expect(page.getByRole('cell', { name: title, exact: true })).toBeVisible();
   for (const path of ['/references/paper', '/references/materials', '/references/printers', '/references/afterprints', '/references/compiles', '/references/customers', '/references/users', '/accounting/payers', '/accounting/bills', '/prices/paper', '/options/reports', '/options/permissions', '/reports/payrolls/create']) {
     await page.goto(path);

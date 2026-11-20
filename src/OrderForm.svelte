@@ -13,6 +13,7 @@
   let volume = source?.order?.volume ?? '';
   let error = '';
   let busy = false;
+  let canEdit = false;
 
   async function loadFormats(prefix = format) {
     if (!['book', 'poly'].includes(orderType)) {
@@ -38,18 +39,26 @@
         const response = await fetch(`/api/orders/${sourceId}`);
         if (!response.ok) throw new Error('Не удалось загрузить заказ');
         source = await response.json();
+        canEdit = Boolean(source.permissions?.edit);
+        if (!canEdit) throw new Error('Недостаточно прав для копирования заказа');
         orderType = source.order.order_type ?? source.order.type;
         title = source.order.title;
         format = source.order.format;
         printing = source.order.printing;
         volume = source.order.volume ?? '';
       } catch (failure) { error = failure.message; }
+    } else {
+      try {
+        const response = await fetch(`/api/orders/add/${orderType}`);
+        if (!response.ok) throw new Error('Недостаточно прав для создания заказа');
+        canEdit = Boolean((await response.json()).permissions?.edit);
+      } catch (failure) { error = failure.message; }
     }
     await loadFormats();
   });
 
   async function submit() {
-    if (busy || (sourceId && !source)) return;
+    if (busy || !canEdit || (sourceId && !source)) return;
     busy = true;
     error = '';
     try {
@@ -68,9 +77,11 @@
   <div class="panel-heading">{source ? 'Копирование заказа' : 'Новый заказ'} <small>({orderType})</small></div>
   <div class="panel-body"><form onsubmit={(event) => { event.preventDefault(); submit(); }}>
     {#if error}<div class="alert alert-danger">{error}</div>{/if}
+    <fieldset disabled={!canEdit || busy}>
     {#if orderType === 'book'}<div class="form-group"><label for="order_volume">Объем</label><input class="form-control" id="order_volume" bind:value={volume} /></div>{/if}
     <div class="form-group"><label for="order_title">Название</label><input required class="form-control" id="order_title" bind:value={title} placeholder="Введите название заказа" /></div>
     <div class="row"><div class="col-md-6"><div class="form-group"><label for="order_format">Формат</label><input class="form-control" id="order_format" list="order-format-suggestions" bind:value={format} oninput={() => loadFormats(format)} /><datalist id="order-format-suggestions">{#each formatSuggestions as suggestion}<option value={suggestion}></option>{/each}</datalist>{#if loadingFormats}<small class="text-muted">Загрузка вариантов…</small>{:else if formatError}<small class="text-danger">{formatError}</small>{/if}</div></div><div class="col-md-6"><div class="form-group"><label for="order_printing">Тираж</label><input required class="form-control" id="order_printing" type="number" bind:value={printing} /></div></div></div>
-    <button class="btn btn-default" type="button" onclick={() => history.back()}>Отмена</button> <button class="btn btn-primary" type="submit">{source ? 'Копировать заказ' : 'Создать заказ'}</button>
+    </fieldset>
+    <button class="btn btn-default" type="button" onclick={() => history.back()}>Отмена</button> {#if canEdit}<button class="btn btn-primary" type="submit" disabled={busy}>{source ? 'Копировать заказ' : 'Создать заказ'}</button>{/if}
   </form></div>
 </div></div></div></div>
