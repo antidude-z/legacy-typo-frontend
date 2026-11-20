@@ -57,17 +57,19 @@
   {#if action === 'list'}
     <a class="btn btn-default" href={`${base}/create`}>Новая печатная машина</a>
     <table class="table table-striped table-bordered table-hover"><thead><tr><th><button class="sort-button" onclick={() => sortBy('id')}>ID</button></th><th><button class="sort-button" onclick={() => sortBy('title')}>Название</button></th><th>Тип продукции</th><th>Действия</th></tr></thead><tbody>
-      {#each data.items as row}<tr class:warning={row.deleted}><td>{row.id}</td><td>{row.title}{#if row.deleted} (удалено){/if}</td><td>{productions.filter(([key]) => row.production[key]).map(([,title]) => title).join('; ')}</td><td><a class="btn btn-xs btn-primary" href={`${base}/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a class="btn btn-xs btn-info" href={`${base}/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить</a>{/if}</td></tr>{:else}<tr><td colspan="4">Нет печатных машин</td></tr>{/each}
+      {#each data.items as row}<tr class:warning={row.deleted}><td>{row.id}</td><td>{row.title}{#if row.deleted} (удалено){/if}</td><td>{productions.filter(([key]) => row.production[key]).map(([,title]) => title).join('; ')}</td><td><a class="btn btn-xs btn-primary" href={`${base}/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a class="btn btn-xs btn-info" href={`${base}/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else if data.can_delete}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить</a>{/if}</td></tr>{:else}<tr><td colspan="4">Нет печатных машин</td></tr>{/each}
     </tbody></table>
     <button class="btn btn-default" disabled={data.page <= 1} onclick={() => load(data.page - 1)}>‹</button> {data.page} / {data.last_page} <button class="btn btn-default" disabled={data.page >= data.last_page} onclick={() => load(data.page + 1)}>›</button>
   {:else if form && action === 'delete'}
-    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {form.deleted ? 'удалить окончательно' : 'удалить'} {form.title}?</p>{#if !form.deleted || data.can_delete_trashed}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a></div></div>
+    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {form.deleted ? 'удалить окончательно' : 'удалить'} {form.title}?</p>{#if form.deleted ? data.can_delete_trashed : data.can_delete}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a></div></div>
   {:else if form}
-    <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); save();}}>
+    <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); if (data.can_edit) save();}}>
+      <fieldset disabled={!data.can_edit || form.deleted}>
       <label for="printer_title">Название</label><input id="printer_title" name="printer_title" class="form-control" required maxlength="50" bind:value={form.title} />
       <label><input type="checkbox" bind:checked={form.need_imagesetter} /> Требуется фотовывод</label>
       <div class="production-checks">{#each productions as [key,title]}<label><input type="checkbox" bind:checked={form[`production_${key}`]} /> {title}</label>{/each}</div>
-      <button class="btn btn-primary" type="submit" disabled={busy || form.deleted}>Сохранить</button> <a class="btn btn-default" href={base}>Отменить</a>
+      <button class="btn btn-primary" type="submit" disabled={busy || form.deleted || !data.can_edit}>Сохранить</button> <a class="btn btn-default" href={base}>Отменить</a>
+      </fieldset>
     </form>
     <h2>Варианты печати</h2>
     <a class="btn btn-default" href={`${base}/${identity}/processes`}>Варианты печати: редактирование</a>
