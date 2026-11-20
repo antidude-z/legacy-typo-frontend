@@ -53,7 +53,8 @@
       if (action === 'list') { await load(Math.max(1, Number(query.get('page')) || 1)); return; }
       if (action === 'show') { window.location.replace(`${base}/${identity}/edit`); return; }
       if (action === 'restore') { await request(`${api}/${identity}/restore`, {method:'POST'}); window.location.replace(base); return; }
-      if (action !== 'create') { data = await request(`${api}/${identity}`); title = data.item.title; }
+      if (action === 'create') { data = await request(`${api}/form-options`); }
+      else { data = await request(`${api}/${identity}`); title = data.item.title; }
       ready = true;
     } catch (failure) { error = failure.message; }
   });
@@ -63,17 +64,17 @@
   <h1 class="page-header">{action === 'list' ? heading : action === 'create' ? newHeading : title || heading}</h1>
   {#if error}<div class="alert alert-danger" role="alert">{error}</div>{/if}
   {#if action === 'list'}
-    <a class="btn btn-default" href={`${base}/create`}>Новая работа</a>
+    {#if data.can_edit}<a class="btn btn-default" href={`${base}/create`}>Новая работа</a>{/if}
     <table class="table table-striped table-bordered table-hover"><thead><tr><th><button class="sort-button" onclick={() => sortBy('id')}>ID {sort === 'id' ? (order === 'asc' ? '↑' : '↓') : ''}</button></th><th><button class="sort-button" onclick={() => sortBy('title')}>Название {sort === 'title' ? (order === 'asc' ? '↑' : '↓') : ''}</button></th><th>Действия</th></tr></thead><tbody>
-      {#each data.items as row}<tr class:warning={row.deleted}><td>{row.id}</td><td>{row.title}{#if row.deleted} (удалено){/if}</td><td><a class="btn btn-xs btn-primary" href={`${base}/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a class="btn btn-xs btn-info" href={`${base}/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить</a>{/if}</td></tr>{:else}<tr><td colspan="3">Нет работ</td></tr>{/each}
+      {#each data.items as row}<tr class:warning={row.deleted}><td>{row.id}</td><td>{row.title}{#if row.deleted} (удалено){/if}</td><td><a class="btn btn-xs btn-primary" href={`${base}/${row.id}/edit`}>{data.can_edit ? 'Редактировать' : 'Просмотр'}</a> {#if row.deleted}{#if data.can_restore}<a class="btn btn-xs btn-info" href={`${base}/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else if data.can_delete}<a class="btn btn-xs btn-danger" href={`${base}/${row.id}/delete`}>Удалить</a>{/if}</td></tr>{:else}<tr><td colspan="3">Нет работ</td></tr>{/each}
     </tbody></table>
     <button class="btn btn-default" disabled={data.page <= 1} onclick={() => load(data.page - 1)}>‹</button> {data.page} / {data.last_page} <button class="btn btn-default" disabled={data.page >= data.last_page} onclick={() => load(data.page + 1)}>›</button>
   {:else if ready && action === 'delete'}
-    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {data.item.deleted ? 'удалить окончательно' : 'удалить'} {title}?</p>{#if !data.item.deleted || data.can_delete_trashed}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a></div></div>
+    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {data.item.deleted ? 'удалить окончательно' : 'удалить'} {title}?</p>{#if data.item.deleted ? data.can_delete_trashed : data.can_delete}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a></div></div>
   {:else if ready}
     <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); save();}}>
-      <div class="form-group"><label for={field}>Название работы</label><input id={field} name={field} class="form-control" required maxlength="50" placeholder="Введите название работы" bind:value={title} /></div>
-      <button class="btn btn-primary" type="submit" disabled={busy || data.item?.deleted}>Сохранить</button> <a class="btn btn-default" href={base}>Отменить</a>
+      <div class="form-group"><label for={field}>Название работы</label><input id={field} name={field} class="form-control" required maxlength="50" placeholder="Введите название работы" bind:value={title} disabled={!data.can_edit || data.item?.deleted} /></div>
+      {#if data.can_edit}<button class="btn btn-primary" type="submit" disabled={busy || data.item?.deleted}>Сохранить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a>
     </form>
   {:else if !error}<p role="status">Загрузка…</p>{/if}
 </div>
