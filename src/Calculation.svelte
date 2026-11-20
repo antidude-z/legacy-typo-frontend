@@ -2,11 +2,12 @@
   import { onMount } from 'svelte';
   import { priceError } from './pricing.js';
   export let orderId;
+  export let canEdit = false;
   let result = null;
   let error = '';
   let busy = false;
   async function calculate() {
-    if (busy) return;
+    if (busy || !canEdit) return;
     busy = true;
     error = '';
     try {
@@ -25,7 +26,7 @@
   });
 </script>
 
-<button type="button" class="btn btn-info" disabled={busy} onclick={calculate}>{busy ? 'Пересчёт…' : 'Пересчитать'}</button>
+{#if canEdit}<button type="button" class="btn btn-info" disabled={busy} onclick={calculate}>{busy ? 'Пересчёт…' : 'Пересчитать'}</button>{/if}
 {#if storedCalculation}<span class="calculation-status text-muted">{storedCalculation.message}</span>{/if}
 {#if error}<div class="alert alert-danger">{error}</div>{/if}
 {#if result}

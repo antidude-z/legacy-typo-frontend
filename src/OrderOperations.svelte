@@ -96,7 +96,7 @@
     <section class="panel panel-default operation-panel">
       <div class="panel-heading">{title}</div>
       <div class="panel-body">
-        <form class="operation-form" onsubmit={(event) => { event.preventDefault(); add(operation, foreignKey); }}>
+        {#if data.permissions?.edit}<form class="operation-form" onsubmit={(event) => { event.preventDefault(); add(operation, foreignKey); }}>
           <select class="form-control" bind:value={forms[operation][foreignKey]} required>
             {#if forms[operation][foreignKey] && !(data.choices[operation] ?? []).some(item => item.id == forms[operation][foreignKey])}<option value={forms[operation][foreignKey]}>Unavailable work #{forms[operation][foreignKey]}</option>{/if}
             <option value="">Выберите работу</option>
@@ -106,9 +106,9 @@
           {#if operation === 'compiles'}<label><input type="checkbox" checked={forms[operation]?.fitting ?? false} onchange={(event) => setField(operation, 'fitting', event.currentTarget.checked)} /> Приладка</label>{/if}
           <button class="btn btn-primary btn-sm" type="submit" disabled={busy}>{editing?.operation === operation ? 'Сохранить' : 'Добавить'}</button>
           {#if editing?.operation === operation}<button class="btn btn-default btn-sm" type="button" onclick={() => editing = null}>Отмена</button>{/if}
-        </form>
+        </form>{/if}
         <table class="table table-striped table-bordered"><thead><tr><th>Работа</th><th>Количество</th>{#if operation === 'compiles'}<th>Приладка</th>{/if}<th>Действия</th></tr></thead><tbody>
-          {#each data.operations[operation] ?? [] as item}<tr class:warning={item.deleted}><td>{(data.choices[operation] ?? []).find((choice) => choice.id == item.reference_id)?.title ?? `#${item.reference_id}`}</td><td>{item.quantity}</td>{#if operation === 'compiles'}<td>{item.fitting ? 'Да' : 'Нет'}</td>{/if}<td>{#if item.deleted}<span class="text-muted">Удалена</span> <button class="btn btn-default btn-xs" type="button" disabled={busy || !data.permissions?.restore} onclick={() => restore(operation, item.id)}>Восстановить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy || !data.permissions?.permanent_delete} onclick={() => permanentDelete(operation, item.id)}>Удалить окончательно</button>{:else}<button class="btn btn-default btn-xs" type="button" disabled={busy} onclick={() => edit(operation, item, foreignKey)}>Изменить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy} onclick={() => remove(operation, item.id)}>Удалить</button>{/if}</td></tr>{:else}<tr><td colspan={operation === 'compiles' ? 4 : 3}>Работы не добавлены</td></tr>{/each}
+          {#each data.operations[operation] ?? [] as item}<tr class:warning={item.deleted}><td>{(data.choices[operation] ?? []).find((choice) => choice.id == item.reference_id)?.title ?? `#${item.reference_id}`}</td><td>{item.quantity}</td>{#if operation === 'compiles'}<td>{item.fitting ? 'Да' : 'Нет'}</td>{/if}<td>{#if item.deleted}<span class="text-muted">Удалена</span> <button class="btn btn-default btn-xs" type="button" disabled={busy || !data.permissions?.restore} onclick={() => restore(operation, item.id)}>Восстановить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy || !data.permissions?.permanent_delete} onclick={() => permanentDelete(operation, item.id)}>Удалить окончательно</button>{:else}<button class="btn btn-default btn-xs" type="button" disabled={busy || !data.permissions?.edit} onclick={() => edit(operation, item, foreignKey)}>Изменить</button> <button class="btn btn-danger btn-xs" type="button" disabled={busy || !data.permissions?.delete} onclick={() => remove(operation, item.id)}>Удалить</button>{/if}</td></tr>{:else}<tr><td colspan={operation === 'compiles' ? 4 : 3}>Работы не добавлены</td></tr>{/each}
         </tbody></table>
       </div>
     </section>

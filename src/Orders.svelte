@@ -6,12 +6,18 @@
   let data = { items: [], pagination: { page: 1, per_page: 30, total: 0, last_page: 1 }, metadata: { statuses: [], managers: [], customers: [], types: [] }, filter: {} };
   let filterOpen = false;
   let createOpen = false;
+  let error = '';
   let form = { filter_status: [], filter_date_from: '', filter_date_to: '', filter_number: '', filter_bill: '', filter_manager: '', filter_customer: '', filter_type: '', filter_text: '' };
 
   async function load(query = '') {
     const response = await fetch(`/api/orders${query}`);
     if (response.status === 303 || response.status === 401) return onUnauthenticated();
+    if (!response.ok) {
+      error = response.status === 403 ? 'Недостаточно прав для просмотра заказов.' : 'Не удалось загрузить заказы.';
+      return;
+    }
     data = await response.json();
+    error = '';
     form = { ...form, ...data.filter };
     window.history.replaceState(null, '', `/orders${query}`);
   }
@@ -43,10 +49,11 @@
 
 <div class="container-fluid orders-page">
   <div class="row"><div class="col-sm-12"><h1 class="page-header">Заказы</h1></div></div>
+  {#if error}<div class="alert alert-danger" role="alert">{error}</div>{:else}
   <div class="row"><div class="col-sm-12">
-    <div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" aria-expanded={createOpen} onclick={() => (createOpen = !createOpen)}>＋ Новый заказ <span class="caret">▼</span></button>
+    {#if data.permissions?.edit}<div class="btn-group"><button type="button" class="btn btn-default dropdown-toggle" aria-expanded={createOpen} onclick={() => (createOpen = !createOpen)}>＋ Новый заказ <span class="caret">▼</span></button>
       {#if createOpen}<ul class="dropdown-menu order-create-menu"><li><a href="/orders/add/book">Книги, брошюры</a></li><li><a href="/orders/add/poly">Полиграфия</a></li><li><a href="/orders/add/wide">Ш/ф печать, стенды</a></li><li><a href="/orders/add/souvenir">Сувенирная продукция</a></li></ul>{/if}
-    </div>
+    </div>{/if}
   </div></div>
   <div class="row spacer"><div class="col-sm-12">&nbsp;</div></div>
   <div class="row"><div class="col-sm-12"><div class="panel panel-default">
@@ -65,6 +72,7 @@
   </tr></thead><tbody>{#each data.items as item}<tr class:warning={item.deleted}><td>{item.id}</td><td><a href={orderEditPath(item.id, window.location.pathname + window.location.search)}>{item.title}</a>{#if item.deleted} (удалено){/if}</td><td>{item.type}</td><td>{item.bill?.number ?? ''}</td><td>{item.manager}</td><td>{item.customer}</td><td>{item.status}</td><td class="text-center">{item.printing}</td><td class="text-center">{item.order_date ?? ''}</td><td class="text-right">{item.total}</td><td><a class="btn btn-xs btn-primary" href={orderEditPath(item.id, window.location.pathname + window.location.search)}>✎</a></td></tr>{:else}<tr><td colspan="11">Нет заказов</td></tr>{/each}</tbody></table></div>
     <div class="pagination-controls"><button class="btn btn-default btn-sm" disabled={data.pagination.page <= 1} onclick={() => page(data.pagination.page - 1)}>‹</button><span>Страница {data.pagination.page} из {data.pagination.last_page}</span><button class="btn btn-default btn-sm" disabled={data.pagination.page >= data.pagination.last_page} onclick={() => page(data.pagination.page + 1)}>›</button></div>
   </div></div>
+  {/if}
 </div>
 
 <style>
