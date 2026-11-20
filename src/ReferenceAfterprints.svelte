@@ -73,9 +73,10 @@
     </tbody></table>
     <button class="btn btn-default" disabled={data.page <= 1} onclick={() => load(data.page - 1)}>‹</button> {data.page} / {data.last_page} <button class="btn btn-default" disabled={data.page >= data.last_page} onclick={() => load(data.page + 1)}>›</button>
   {:else if form && action === 'delete'}
-    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {form.deleted ? 'удалить окончательно' : 'удалить'} {form.title || 'запись'}?</p>{#if !form.deleted || data.can_delete_trashed}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={parent}>Отменить</a></div></div>
+    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {form.deleted ? 'удалить окончательно' : 'удалить'} {form.title || 'запись'}?</p>{#if form.deleted ? data.can_delete_trashed : data.can_delete}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={parent}>Отменить</a></div></div>
   {:else if form}
-    <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); save();}}>
+    <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); if (data.can_edit) save();}}>
+      <fieldset disabled={!data.can_edit || form.deleted}>
       {#if level === 'definition'}
         <div class="form-group"><label for="afterprint_title">Название</label><input id="afterprint_title" class="form-control" required maxlength="50" bind:value={form.title} /></div>
         <div class="form-group"><label for="afterprint_tooltip">Подсказка</label><textarea id="afterprint_tooltip" class="form-control" bind:value={form.tooltip}></textarea></div>
@@ -85,18 +86,19 @@
           {:else}<label for={`afterprint_${key}`}>{label}</label>{#if type === 'select'}<select id={`afterprint_${key}`} class="form-control" required bind:value={form[key]}>{#each choices as choice}<option value={choice.id}>{choice.title}</option>{/each}</select>{:else}<input id={`afterprint_${key}`} class="form-control" type={type === 'text' ? 'text' : 'number'} step={type === 'decimal' ? '0.0001' : '1'} required={type !== 'optional-number'} bind:value={form[key]} />{/if}{/if}
         </div>{/each}
       {/if}
-      <button class="btn btn-primary" type="submit" disabled={busy || form.deleted}>Сохранить</button> <a class="btn btn-default" href={parent}>Вернуться</a>
+      <button class="btn btn-primary" type="submit" disabled={busy || form.deleted || !data.can_edit}>Сохранить</button> <a class="btn btn-default" href={parent}>Вернуться</a>
+      </fieldset>
     </form>
     {#if level === 'definition'}
       <h2>Параметры</h2>
       <table class="table table-bordered"><thead><tr><th>Название</th><th>Тип</th><th>По умолчанию</th><th>Значения</th></tr></thead><tbody>{#each data.parameters as parameter}<tr><td>{parameter.title}</td><td>{parameter.type}</td><td>{parameter.value}</td><td>{parameter.values.map((value) => value.value).join('; ')}</td></tr>{:else}<tr><td colspan="4">Нет параметров</td></tr>{/each}</tbody></table>
       <h2>Этапы работы</h2><a class="btn btn-default" href={`${definition}/stages/create`}>Новый этап</a>
       <table class="table table-striped table-bordered"><thead><tr><th>Название</th><th>В обработке</th><th>Отходы за прогон</th><th>Плотность, от</th><th>До</th><th>Актуальная цена, руб.</th><th>Действия</th></tr></thead><tbody>
-        {#each data.stages as row}<tr class:warning={row.deleted}><td>{row.title}</td><td>{row.together}</td><td>{row.waste}</td><td>{row.min_paper_weight}</td><td>{row.max_paper_weight ?? ''}</td><td>{row.price}</td><td><a href={`${definition}/stages/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a href={`${definition}/stages/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a href={`${definition}/stages/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a href={`${definition}/stages/${row.id}/delete`}>Удалить</a>{/if} {#if data.can_view_prices}<a href={`/prices/afterprint/${row.id}`}>История цен</a>{/if}</td></tr>{:else}<tr><td colspan="7">Этапы не введены</td></tr>{/each}
+        {#each data.stages as row}<tr class:warning={row.deleted}><td>{row.title}</td><td>{row.together}</td><td>{row.waste}</td><td>{row.min_paper_weight}</td><td>{row.max_paper_weight ?? ''}</td><td>{row.price}</td><td><a href={`${definition}/stages/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a href={`${definition}/stages/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a href={`${definition}/stages/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else if data.can_delete}<a href={`${definition}/stages/${row.id}/delete`}>Удалить</a>{/if} {#if data.can_view_prices}<a href={`/prices/afterprint/${row.id}`}>История цен</a>{/if}</td></tr>{:else}<tr><td colspan="7">Этапы не введены</td></tr>{/each}
       </tbody></table>
     {:else if level === 'stage' && action !== 'create'}
       <h2>Материалы</h2><a class="btn btn-default" href={`${target}/materials/create`}>Новый материал</a>
-      <table class="table table-striped table-bordered"><thead><tr><th>Название</th><th>Количество</th><th>Действия</th></tr></thead><tbody>{#each data.materials as row}<tr class:warning={row.deleted}><td>{row.title}</td><td>{row.quantity}</td><td><a href={`${target}/materials/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a href={`${target}/materials/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a href={`${target}/materials/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else}<a href={`${target}/materials/${row.id}/delete`}>Удалить</a>{/if}</td></tr>{:else}<tr><td colspan="3">Материалы не введены</td></tr>{/each}</tbody></table>
+      <table class="table table-striped table-bordered"><thead><tr><th>Название</th><th>Количество</th><th>Действия</th></tr></thead><tbody>{#each data.materials as row}<tr class:warning={row.deleted}><td>{row.title}</td><td>{row.quantity}</td><td><a href={`${target}/materials/${row.id}/edit`}>Редактировать</a> {#if row.deleted}{#if data.can_restore}<a href={`${target}/materials/${row.id}/restore`}>Восстановить</a>{/if}{#if data.can_delete_trashed}<a href={`${target}/materials/${row.id}/delete`}>Удалить окончательно</a>{/if}{:else if data.can_delete}<a href={`${target}/materials/${row.id}/delete`}>Удалить</a>{/if}</td></tr>{:else}<tr><td colspan="3">Материалы не введены</td></tr>{/each}</tbody></table>
     {/if}
   {:else if !error}<p role="status">Загрузка…</p>{/if}
 </div>
