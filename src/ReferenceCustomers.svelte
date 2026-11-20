@@ -61,11 +61,13 @@
     </tbody></table>
     <button class="btn btn-default" disabled={data.page <= 1} onclick={() => load(data.page - 1)}>‹</button> {data.page} / {data.last_page} <button class="btn btn-default" disabled={data.page >= data.last_page} onclick={() => load(data.page + 1)}>›</button>
   {:else if form && action === 'delete'}
-    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {form.deleted ? 'удалить окончательно' : 'удалить'} {form.title}?</p>{#if !form.deleted || data.can_delete_trashed}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a></div></div>
+    <div class="panel panel-default"><div class="panel-heading">Подтверждение действия</div><div class="panel-body"><p>Вы действительно хотите {form.deleted ? 'удалить окончательно' : 'удалить'} {form.title}?</p>{#if form.deleted ? data.can_delete_trashed : data.can_delete}<button class="btn btn-danger" disabled={busy} onclick={remove}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a></div></div>
   {:else if form}
-    <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); save();}}>
+    <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); if (data.can_edit) save();}}>
+      <fieldset disabled={!data.can_edit || form.deleted}>
       {#each data.fields as [key,label,type]}<div class="form-group"><label for={`customer_${key}`}>{label}</label>{#if type === 'select'}<select id={`customer_${key}`} class="form-control" bind:value={form[key]}><option value={0}>Не указана</option>{#if form[key] && !data.groups.some(group => group.id === Number(form[key]))}<option value={form[key]}>Unavailable group #{form[key]}</option>{/if}{#each data.groups as group}<option value={group.id}>{group.title}</option>{/each}</select>{:else if type === 'textarea'}<textarea id={`customer_${key}`} class="form-control" rows="3" bind:value={form[key]}></textarea>{:else}<input id={`customer_${key}`} class="form-control" required={key === 'title'} bind:value={form[key]} />{/if}</div>{/each}
-      <button class="btn btn-primary" type="submit" disabled={busy || form.deleted}>Сохранить</button> <a class="btn btn-default" href={base}>Отменить</a>
+      <button class="btn btn-primary" type="submit" disabled={busy || form.deleted || !data.can_edit}>Сохранить</button> <a class="btn btn-default" href={base}>Отменить</a>
+      </fieldset>
     </form>
   {:else if !error}<p role="status">Загрузка…</p>{/if}
 </div>
