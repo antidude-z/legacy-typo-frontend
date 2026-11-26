@@ -48,7 +48,7 @@
   {#if error}<div class="alert alert-danger" role="alert">{error}</div>{/if}
   {#if form && action === 'delete'}
     <div class="panel panel-default"><div class="panel-body"><p>Вы действительно хотите {form.deleted ? 'удалить окончательно' : 'удалить'} платеж {form.amount} от {form.payment_date}?</p>
-      {#if data.can_edit && (!form.deleted || data.can_delete_trashed)}<button class="btn btn-danger" disabled={busy} onclick={submit}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a>
+      {#if !data.bill.deleted && (form.deleted ? data.can_delete_trashed : data.can_delete)}<button class="btn btn-danger" disabled={busy} onclick={submit}>Удалить</button>{/if} <a class="btn btn-default" href={base}>Отменить</a>
     </div></div>
   {:else if form}
     <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); submit();}}>
