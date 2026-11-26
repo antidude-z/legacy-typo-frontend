@@ -50,7 +50,7 @@
       if (action === 'restore') { await request(`${api}/${identity}/restore`, {method:'POST'}); window.location.replace(base); return; }
       if (action === 'create') {
         data = {...data,...await request(`${api}/form`)};
-        form = {surname:'',name:'',post:'',phone:'',email:'',role_id:data.roles[0]?.id ?? '',password:'',password_confirmation:'',change_password:false,fired:false};
+        form = {surname:'',name:'',post:'',phone:'',email:'',role_id:'',password:'',password_confirmation:'',change_password:false,fired:false};
       } else {
         data = {...data,...await request(`${api}/${identity}`)};
         form = {...data.item,password:'',password_confirmation:'',change_password:false};
@@ -73,10 +73,10 @@
   {:else if form}
     <form class="reference-form" autocomplete="off" onsubmit={(event) => {event.preventDefault(); save();}}>
       <fieldset disabled={busy || form.deleted || (action !== 'create' && !data.can_edit)}>
-        {#each fields as [key,label]}<div class="form-group"><label for={`user_${key}`}>{label}</label><input id={`user_${key}`} name={`user_${key}`} class="form-control" required bind:value={form[key]} />{#if errors[`user_${key}`]}<p>{errors[`user_${key}`]}</p>{/if}</div>{/each}
-        <div class="form-group"><label for="user_role">Роль в программе</label><select id="user_role" class="form-control" required bind:value={form.role_id}>{#each data.roles as role}<option value={role.id}>{role.title}</option>{/each}</select>{#if errors.user_role}<p>{errors.user_role}</p>{/if}</div>
-        {#if action !== 'create'}<label><input type="checkbox" bind:checked={form.fired} /> Уволен</label><label><input type="checkbox" bind:checked={form.change_password} /> Изменить пароль</label>{/if}
-        {#if action === 'create' || form.change_password}<div class="form-group"><label for="user_password">Пароль</label><input id="user_password" class="form-control" type="password" minlength="6" required bind:value={form.password} />{#if errors.user_password}<p>{errors.user_password}</p>{/if}</div><div class="form-group"><label for="user_password_confirmation">Повторите пароль</label><input id="user_password_confirmation" class="form-control" type="password" minlength="6" required bind:value={form.password_confirmation} /></div>{/if}
+        {#each fields as [key,label]}<div class="form-group"><label for={`user_${key}`}>{label}</label><input id={`user_${key}`} name={`user_${key}`} class="form-control" required disabled={key === 'email' && action !== 'create' && !data.can_reset_credentials} bind:value={form[key]} />{#if errors[`user_${key}`]}<p>{errors[`user_${key}`]}</p>{/if}</div>{/each}
+        {#if action === 'create' || data.can_assign_role}<div class="form-group"><label for="user_role">Роль в программе</label><select id="user_role" class="form-control" required bind:value={form.role_id}><option value="" disabled>Выберите роль</option>{#each data.roles as role}<option value={role.id}>{role.title}</option>{/each}</select>{#if errors.user_role}<p>{errors.user_role}</p>{/if}</div>{/if}
+        {#if action !== 'create' && data.can_delete}<label><input type="checkbox" bind:checked={form.fired} /> Уволен</label>{/if}{#if action !== 'create' && data.can_reset_credentials}<label><input type="checkbox" bind:checked={form.change_password} /> Изменить пароль</label>{/if}
+        {#if action === 'create' || (form.change_password && data.can_reset_credentials)}<div class="form-group"><label for="user_password">Пароль</label><input id="user_password" class="form-control" type="password" minlength="6" required bind:value={form.password} />{#if errors.user_password}<p>{errors.user_password}</p>{/if}</div><div class="form-group"><label for="user_password_confirmation">Повторите пароль</label><input id="user_password_confirmation" class="form-control" type="password" minlength="6" required bind:value={form.password_confirmation} /></div>{/if}
         <button class="btn btn-primary" type="submit">Сохранить</button>
       </fieldset><a class="btn btn-default" href={base}>Отменить</a>
     </form>

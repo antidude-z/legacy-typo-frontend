@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('historical missing selector values survive unrelated browser edits', async ({ page }) => {
-  test.skip(Boolean(process.env.BROWSER_QA_URL), 'Uses dedicated local orphan fixtures');
+  test.skip(Boolean(process.env.BROWSER_QA_URL) && process.env.BROWSER_QA_SYNTHETIC_ORPHANS !== '1', 'Uses dedicated local orphan fixtures');
   await page.goto('/accounting/bills/88001/edit');
   await expect(page.locator('#bill_payer')).toHaveValue('88002');
   await expect(page.locator('#bill_manager')).toHaveValue('88003');
