@@ -15,7 +15,7 @@ for (const width of [375, 768, 1440]) {
     await page.goto('/auth/login');
     await expect(page.locator('#email')).toBeVisible();
     await audit('login');
-    await page.locator('#email').selectOption('browser@example.test');
+    await page.locator('#email').fill('browser@example.test');
     await page.locator('#password').fill('Browser-test-123');
     await page.getByRole('button', { name: 'Войти', exact: true }).click();
     await expect(page).toHaveURL(/\/orders$/);

@@ -20,8 +20,8 @@ test('historical missing selector values survive unrelated browser edits', async
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/auth/login');
-  await expect(page.locator('#email option[value="browser@example.test"]')).toBeAttached();
-  await page.getByLabel('Пользователь', { exact: true }).selectOption('browser@example.test');
+  await expect(page.locator('#email')).toBeVisible();
+  await page.getByLabel('Пользователь', { exact: true }).fill('browser@example.test');
   await page.getByLabel('Пароль', { exact: true }).fill('Browser-test-123');
   await page.getByRole('button', { name: 'Войти', exact: true }).click();
   await expect(page).toHaveURL(/\/orders$/);

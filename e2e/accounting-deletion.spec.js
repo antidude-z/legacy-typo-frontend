@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('S06 bill editor can save but cannot delete bills or payments', async ({ page }) => {
   await page.goto('/auth/login');
-  await page.getByLabel('Пользователь', { exact: true }).selectOption('bill-editor@example.test');
+  await page.getByLabel('Пользователь', { exact: true }).fill('bill-editor@example.test');
   await page.getByLabel('Пароль', { exact: true }).fill('Browser-test-123');
   await page.getByRole('button', { name: 'Войти', exact: true }).click();
   await expect(page).toHaveURL(/\/orders$/);

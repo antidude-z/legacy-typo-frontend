@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 async function login(page, email) {
   await page.goto('/auth/login');
-  await page.getByLabel('Пользователь', { exact: true }).selectOption(email);
+  await page.getByLabel('Пользователь', { exact: true }).fill(email);
   await page.getByLabel('Пароль', { exact: true }).fill('Browser-test-123');
   await page.getByRole('button', { name: 'Войти', exact: true }).click();
   await expect(page).toHaveURL(/\/orders$/);

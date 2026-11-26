@@ -41,7 +41,6 @@
   import MainOptions from './MainOptions.svelte';
 
   let session = { authenticated: false, user: null, menu: [] };
-  let users = {};
   let error = '';
   let sessionLoaded = false;
   let path = window.location.pathname;
@@ -75,11 +74,6 @@
     sessionLoaded = true;
   }
 
-  async function loadUsers() {
-    const response = await fetch('/api/auth/users');
-    users = await response.json();
-  }
-
   async function login(credentials) {
     const body = new URLSearchParams(credentials);
     const response = await fetch('/api/auth/login', { method: 'POST', body, redirect: 'manual' });
@@ -100,7 +94,6 @@
     if (recalculatePricePath) { window.location.replace(`/prices/${recalculatePricePath[1]}`); return; }
     await loadSession();
     if (path === '/') { window.location.replace(session.authenticated ? '/orders' : '/auth/login'); return; }
-    if (path === '/auth/login') await loadUsers();
   });
 </script>
 
@@ -110,7 +103,7 @@
 
 <Navigation menu={session.business_access ? session.menu : []} user={session.user} registrationEnabled={session.public_registration_enabled === true} onLogout={logout} />
 {#if path === '/auth/login'}
-  <Login {users} {error} registrationEnabled={session.public_registration_enabled === true} onSubmit={login} />
+  <Login {error} registrationEnabled={session.public_registration_enabled === true} onSubmit={login} />
 {:else if authPath?.kind === 'register'}
   {#if sessionLoaded && session.public_registration_enabled}<Register />{:else if sessionLoaded}<div class="container-fluid"><div class="alert alert-info">Регистрация отключена. Обратитесь к администратору.</div></div>{/if}
 {:else if authPath?.kind === 'request'}
