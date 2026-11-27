@@ -17,3 +17,12 @@ test('order forms expose negotiated sale total, volume and wide dimensions', () 
   assert.match(form, /order_width: width/);
   assert.match(form, /order_height: height/);
 });
+
+test('blank editor exposes production inputs and fixed-plate behavior', () => {
+  for (const field of ['colors_front', 'colors_back', 'details_per_sheet', 'pages_per_sheet', 'comments', 'fix_plates', 'plates']) {
+    assert.match(detail, new RegExp(`blankForm\\.${field}`));
+  }
+  assert.match(detail, /automaticPlates/);
+  assert.match(detail, /chooseImposition/);
+  assert.match(detail, /readonly=\{!blankForm\.fix_plates\}/);
+});
